@@ -5,6 +5,10 @@
 	Please notify me if you need credits
 ]]
 
+-- ORIGINAL OF THIS CODE:
+-- Voidware
+-- https://github.com/VapeVoidware/VW-Add
+
 if not getgenv().shared then
     getgenv().shared = {}
 end
@@ -33,22 +37,12 @@ pcall(function()
     if isNew then
         writefile("voidware_linoria/themes/default.txt", "Jester")
         local suc = pcall(function()
-            writefile("voidware_linoria/ink_game/settings/default.json", game:HttpGet("https://raw.githubusercontent.com/Erchobg/VoidwareProfiles/refs/heads/main/InkGame/ink_game/settings/default.json", true))
+            writefile("voidware_linoria/ink_game/settings/default.json", game:HttpGet("https://raw.githubusercontent.com/NSeydulla/VoidwareProfiles/refs/heads/main/InkGame/ink_game/settings/default.json", true))
         end)
         if suc then
             writefile("voidware_linoria/ink_game/settings/autoload.txt", "default")
         end
     end
-end)
-
-task.spawn(function()
-    pcall(function()
-        if not isfile("Local_VW_Update_Log.json") then
-            shared.UpdateLogBypass = true
-        end
-		loadstring(game:HttpGet("https://raw.githubusercontent.com/VapeVoidware/VWExtra/main/VWUpdateLog.lua", true))()
-        shared.UpdateLogBypass = nil
-    end)
 end)
 
 local allowedlibs = {"Obsidian", "LinoriaLib"}
@@ -67,7 +61,7 @@ local function getLibrary()
     end
 
     if not table.find(allowedlibs, res) then
-        res = defaut
+        res = default
     end
     writefile("Voidware_InkGame_Library_Choice.txt", res)
     return res
@@ -584,15 +578,29 @@ function Script.Functions.RevealGlassBridge()
                         child:Destroy()
                     end
                 end
-                local isBreakable = primaryPart:GetAttribute("exploitingisevil") == true
 
-                local targetColor = isBreakable and Color3.fromRGB(255, 0, 0) or Color3.fromRGB(0, 255, 0)
-                local transparency = 0.5
+                local glasspart = tileModel:FindFirstChild("glasspart")
+                
+                local isNotBreakable = primaryPart:GetAttribute("exploitingisevil") ~= true
+                local isKillBreaking = glasspart:GetAttribute("ActuallyKilling") ~= nil
+                local isDelayedBreaking = glasspart:GetAttribute("DelayedBreaking") ~= nil
 
+                local targetColor = nil
+
+                if isNotBreakable then
+                    targetColor = Color3.fromRGB(0, 255, 0)
+                elseif isKillBreaking then
+                    targetColor = Color3.fromRGB(255, 0, 0)
+                elseif isDelayedBreaking then
+                    targetColor = Color3.fromRGB(255, 255, 0)
+                end
+
+                if targetColor == nil then continue end
+                
                 for _, part in pairs(tileModel:GetDescendants()) do
                     if part:IsA("BasePart") then
                         TweenService:Create(part, TweenInfo.new(0.5, Enum.EasingStyle.Linear), {
-                            Transparency = transparency,
+                            Transparency = 0.5,
                             Color = targetColor
                         }):Play()
                     end
@@ -611,7 +619,7 @@ function Script.Functions.RevealGlassBridge()
         AnnouncementOneLine = true,
         FasterTween = true,
         DisplayTime = 10,
-        AnnouncementDisplayText = "[Voidware]: Safe tiles are green, breakable tiles are red!"
+        AnnouncementDisplayText = "[Voidware]: Safe tiles are green, breakable tiles are red and yellow!"
     })
 end
 
@@ -1857,56 +1865,6 @@ local FunGroupBox = Tabs.Main:AddLeftGroupbox("Fun", "zap") do
     end)
 end
 
-local KillauraGroupBox = Tabs.Main:AddLeftGroupbox("Killaura", "sword") do
-    KillauraGroupBox:AddToggle("KillauraInkGame", {
-        Text = "Killaura",
-        Default = false
-    })
-
-    KillauraGroupBox:AddToggle("KillauraFaceTarget", {
-        Text = "Face Target",
-        Default = true
-    })
-
-    Toggles.KillauraInkGame:OnChanged(function(call)
-        if call then
-            pcall(function()
-                if Toggles.RedLightGodmode.Value then
-                    Toggles.RedLightGodmode:SetValue(false)
-                end
-            end)
-            local fork = Script.Functions.GetFork()
-            if not fork then
-                Script.Functions.Alert("No Weapon found!", 3)
-                Toggles.KillauraInkGame:SetValue(false)
-                return
-            end
-            task.spawn(function()
-                repeat
-                    task.wait(0.5)
-                    if Script.GameState == "RedLightGreenLight" then return end
-                    local target = getNearestEnemy(15)
-                    if target and Toggles.KillauraFaceTarget.Value then
-                        local root = lplr.Character and lplr.Character:FindFirstChild("HumanoidRootPart")
-                        if root then
-                            local look = (target.Position - root.Position).Unit
-                            local newCFrame = CFrame.new(root.Position, root.Position + look)
-                            root.CFrame = CFrame.new(root.Position, target.Position)
-                            if KillauraDebug then print("[Killaura Debug] Facing nearest enemy before attack.") end
-                        end
-                    end
-                    Script.Functions.FireForkRemote()
-                    local args = {
-                        CFrame.new(lplr.Character.HumanoidRootPart.Position)
-                    }
-                    game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("rootCFrame"):FireServer(unpack(args))
-                    if KillauraDebug then print("[Killaura Debug] Fired rootCFrame remote.") end
-                until not Toggles.KillauraInkGame.Value or Library.Unloaded
-            end)
-        end
-    end)
-end
-
 local fireproximityprompt = fireproximityprompt or function(prompt)
     prompt.HoldDuration = 0
     prompt:InputHoldBegin()
@@ -2225,12 +2183,54 @@ local GlassBridgeGroup = Tabs.Main:AddLeftGroupbox("Glass Bridge", "bridge") do
     end)
 end
 
-local InformationGroup = Tabs.Main:AddRightGroupbox("Information", "info") do
-    InformationGroup:AddLabel("Welcome to Voidware!")
-    InformationGroup:AddLabel("Make sure to join our discord \n server for updates!")
-    InformationGroup:AddLabel("")
-    InformationGroup:AddButton("Join Discord Server", Script.Functions.JoinDiscordServer)
-    InformationGroup:AddButton("Unload", function() Library:Unload() end)
+local KillauraGroupBox = Tabs.Main:AddLeftGroupbox("Killaura", "sword") do
+    KillauraGroupBox:AddToggle("KillauraInkGame", {
+        Text = "Killaura",
+        Default = false
+    })
+
+    KillauraGroupBox:AddToggle("KillauraFaceTarget", {
+        Text = "Face Target",
+        Default = true
+    })
+
+    Toggles.KillauraInkGame:OnChanged(function(call)
+        if call then
+            pcall(function()
+                if Toggles.RedLightGodmode.Value then
+                    Toggles.RedLightGodmode:SetValue(false)
+                end
+            end)
+            local fork = Script.Functions.GetFork()
+            if not fork then
+                Script.Functions.Alert("No Weapon found!", 3)
+                Toggles.KillauraInkGame:SetValue(false)
+                return
+            end
+            task.spawn(function()
+                repeat
+                    task.wait(0.5)
+                    if Script.GameState == "RedLightGreenLight" then return end
+                    local target = getNearestEnemy(15)
+                    if target and Toggles.KillauraFaceTarget.Value then
+                        local root = lplr.Character and lplr.Character:FindFirstChild("HumanoidRootPart")
+                        if root then
+                            local look = (target.Position - root.Position).Unit
+                            local newCFrame = CFrame.new(root.Position, root.Position + look)
+                            root.CFrame = CFrame.new(root.Position, target.Position)
+                            if KillauraDebug then print("[Killaura Debug] Facing nearest enemy before attack.") end
+                        end
+                    end
+                    Script.Functions.FireForkRemote()
+                    local args = {
+                        CFrame.new(lplr.Character.HumanoidRootPart.Position)
+                    }
+                    game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("rootCFrame"):FireServer(unpack(args))
+                    if KillauraDebug then print("[Killaura Debug] Fired rootCFrame remote.") end
+                until not Toggles.KillauraInkGame.Value or Library.Unloaded
+            end)
+        end
+    end)
 end
 
 function Script.Functions.GetHider()
@@ -2772,7 +2772,7 @@ function Script.Functions.PlayEmote(emoteId, emoteObject)
     end
 end
 
-local EmotesGroup = Tabs.Misc:AddRightGroupbox("Misc", "smile") do
+local EmotesGroup = Tabs.Misc:AddRightGroupbox("Emote", "smile") do
     EmotesGroup:AddDropdown("EmotesList", { 
         Text = 'Emotes List', 
         Values = {}, 
@@ -3014,6 +3014,16 @@ Toggles.FOVToggle:OnChanged(function(call)
 end)
 
 local PlayerGroupBox = Tabs.Main:AddRightGroupbox("Player", "user") do
+    PlayerGroupBox:AddToggle("WonBoostToggle", {
+        Text = "Won boost",
+        Default = false
+    })
+
+    PlayerGroupBox:AddToggle("DashBoostToggle", {
+        Text = "Enable Dash",
+        Default = false
+    })
+
     PlayerGroupBox:AddSlider("SpeedSlider", {
         Text = "Walk Speed",
         Default = 30,
@@ -3212,6 +3222,31 @@ Options.SpeedSlider:OnChanged(function(val)
     if not lplr.Character then return end
     if not lplr.Character:FindFirstChild("Humanoid") then return end
     lplr.Character.Humanoid.WalkSpeed = Options.SpeedSlider.Value
+end)
+
+-- game.Players.LocalPlayer.Boosts['Damage Boost'].Value = 5
+Toggles.WonBoostToggle:OnChanged(function(call)
+    if call then
+        Script.Functions.Alert("Won boost Enabled", 3)
+        Script.Temp.origWonBoostValue = lplr.Boosts['Won Boost'].Value
+        lplr.Boosts['Won Boost'].Value = 100
+    else
+        Script.Functions.Alert("Won boost Disabled", 3)
+        lplr.Boosts['Won Boost'].Value = Script.Temp.origWonBoostValue
+        Script.Temp.origWonBoostValue = nil
+    end
+end)
+
+Toggles.DashBoostToggle:OnChanged(function(call)
+    if call then
+        Script.Functions.Alert("Dash boost Enabled", 3)
+        Script.Temp.origDashBoostValue = lplr.Boosts['Faster Sprint'].Value
+        lplr.Boosts['Faster Sprint'].Value = 5
+    else
+        Script.Functions.Alert("Dash boost Disabled", 3)
+        lplr.Boosts['Faster Sprint'].Value = Script.Temp.origDashBoostValue
+        Script.Temp.origDashBoostValue = nil
+    end
 end)
 
 Toggles.SpeedToggle:OnChanged(function(call)
@@ -4233,7 +4268,6 @@ Library:OnUnload(function()
 end)
 
 local MenuGroup = Tabs["UI Settings"]:AddLeftGroupbox("Menu", "menu")
-local CreditsGroup = Tabs["UI Settings"]:AddRightGroupbox("Credits", "heart")
 
 MenuGroup:AddToggle("KeybindMenuOpen", { Default = false, Text = "Open Keybind Menu", Callback = function(value) Library.KeybindFrame.Visible = value end})
 MenuGroup:AddToggle("ShowCustomCursor", {Text = "Custom Cursor", Default = true, Callback = function(Value) Library.ShowCustomCursor = Value end})
@@ -4241,14 +4275,6 @@ MenuGroup:AddDivider()
 MenuGroup:AddLabel("Menu bind"):AddKeyPicker("MenuKeybind", { Default = "RightShift", NoUI = false, Text = "Menu keybind" })
 MenuGroup:AddButton("Join Discord Server", Script.Functions.JoinDiscordServer)
 MenuGroup:AddButton("Unload", function() Library:Unload() end)
-
-CreditsGroup:AddLabel("erchodev#0 - script dev")
-CreditsGroup:AddLabel("Jorsan - Mingle Support & Godmode")
-CreditsGroup:AddLabel("linoria - ui library")
-CreditsGroup:AddLabel("obsidian - ui library")
-CreditsGroup:AddLabel("mspaint v2")
-CreditsGroup:AddLabel("Inf Yield")
-CreditsGroup:AddLabel("Please notify me if you need \n credits (erchodev#0 on discord)")
 
 Library.ToggleKeybind = Options.MenuKeybind
 
@@ -4278,8 +4304,17 @@ ThemeManager:ApplyToTab(Tabs["UI Settings"])
 
 SaveManager:LoadAutoloadConfig()
 
-InformationGroup:AddDivider()
-InformationGroup:AddDropdown("LibraryChoice", {
+local CreditsGroup = Tabs["UI Settings"]:AddRightGroupbox("Credits", "heart")
+CreditsGroup:AddLabel("erchodev#0 - script dev")
+CreditsGroup:AddLabel("Jorsan - Mingle Support & Godmode")
+CreditsGroup:AddLabel("linoria - ui library")
+CreditsGroup:AddLabel("obsidian - ui library")
+CreditsGroup:AddLabel("mspaint v2")
+CreditsGroup:AddLabel("Inf Yield")
+CreditsGroup:AddLabel("Please notify me if you need \n credits (erchodev#0 on discord)")
+
+local LibraryChangeGroup = Tabs["UI Settings"]:AddRightGroupbox("Library", "info")
+LibraryChangeGroup:AddDropdown("LibraryChoice", {
     Text = "Library Choice",
     Values = allowedlibs,
     Default = targetlib
@@ -4291,12 +4326,11 @@ Options.LibraryChoice:OnChanged(function(val)
     if shared.VoidDev and isfile("inkgame.lua") then
         loadstring(readfile("inkgame.lua"))()
     else
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/VapeVoidware/VW-Add/main/inkgame.lua", true))()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/NSeydulla/VW-Add/main/inkgame.lua", true))()
     end
 end)
-InformationGroup:AddDivider()
 
-InformationGroup:AddButton("Save Settings", function()
+LibraryChangeGroup:AddButton("Save Settings", function()
     local suc, err = pcall(function()
         local configName = Options.SaveManager_ConfigList and Options.SaveManager_ConfigList.Values and #Options.SaveManager_ConfigList.Values > 0 and Options.SaveManager_ConfigList.Values[1]
         if not configName then return end
@@ -4314,7 +4348,7 @@ InformationGroup:AddButton("Save Settings", function()
 end)
 
 local approved = false
-InformationGroup:AddButton("Reset Settings", function()
+LibraryChangeGroup:AddButton("Reset Settings", function()
     if approved then
         pcall(function()
             writefile("voidware_linoria/ink_game/settings/default.json", "[]")
@@ -4322,7 +4356,7 @@ InformationGroup:AddButton("Reset Settings", function()
         pcall(function()
             Library:Unload()
         end)
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/VapeVoidware/VW-Add/main/inkgame.lua", true))()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/NSeydulla/VW-Add/main/inkgame.lua", true))()
     else
         Script.Functions.Alert("[Save Settings]: Press the button again to reset your settings. This cannot be undone!", 5)
         approved = true
