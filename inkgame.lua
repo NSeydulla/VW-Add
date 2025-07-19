@@ -1,6 +1,8 @@
--- ORIGINAL OF THIS CODE:
--- Voidware
--- https://github.com/VapeVoidware/VW-Add
+-- If someone somehow found this script
+-- This is fork of Voidware!
+-- Original scripts discord: discord.gg/voidware
+-- Original script owner: Voidware
+-- Forked from: https://github.com/VapeVoidware/VW-Add
 
 if not getgenv().shared then
     getgenv().shared = {}
@@ -74,7 +76,7 @@ end
 
 local Window = Library:CreateWindow({
 	Title = "Voidware - Ink Game",
-    Footer = "discord.gg/voidware",
+    Footer = "This is fork of Voidware! Original scripts discord - discord.gg/voidware",
 	Center = true,
 	AutoShow = true,
 	Resizable = true,
@@ -200,6 +202,31 @@ function Script.Functions.Warn(message: string)
     warn("WARN - voidware:", message)
 end
 
+function Script.Functions.ApplyHiderSeekerEsp(esp)
+    if esp.Object:FindFirstChild("BlueVest") and Toggles['HiderESP'].Value then
+        if esp.Connections.HiderPlayerConn then
+            esp.Connections.HiderPlayerConn:Disconnect()
+        end
+        esp.Connections.HiderPlayerConn = Script.Functions.OnceOnGameChanged(function()
+            esp.SetColor(Options['PlayerEspColor'].Value)
+            esp.Text = esp.Text:gsub('(Hider)', "")
+        end)
+        esp.Color = Options['HiderEspColor'].Value
+        esp.Text = esp.Text.."(Hider)"
+    end
+    if not esp.Object:FindFirstChild("BlueVest") and Toggles['SeekerESP'].Value then
+        if esp.Connections.SeekerPlayerConn then
+            esp.Connections.SeekerPlayerConn:Disconnect()
+        end
+        esp.Connections.SeekerPlayerConn = Script.Functions.OnceOnGameChanged(function()
+            esp.SetColor(Options['PlayerEspColor'].Value)
+            esp.Text = esp.Text:gsub('(Seeker)', "")
+        end)
+        esp.Color = Options['SeekerEspColor'].Value
+        esp.Text = esp.Text.."(Seeker)"
+    end
+end
+
 function Script.Functions.ESP(args: ESP)
     if not args.Object then return Script.Functions.Warn("ESP Object is nil") end
 
@@ -234,28 +261,7 @@ function Script.Functions.ESP(args: ESP)
     end
 
     if ESPManager.Type == "Player" then
-        if ESPManager.Object:FindFirstChild("BlueVest") and Toggles['HiderESP'].Value then
-            if ESPManager.Connections.HiderPlayerConn then
-                ESPManager.Connections.HiderPlayerConn:Disconnect()
-            end
-            ESPManager.Connections.HiderPlayerConn = Script.Functions.OnceOnGameChanged(function()
-                ESPManager.SetColor(Options['PlayerEspColor'].Value)
-                ESPManager.Text = ESPManager.Text:gsub('(Hider)', "")
-            end)
-            ESPManager.Color = Options['HiderEspColor'].Value
-            ESPManager.Text = ESPManager.Text.."(Hider)"
-        end
-        if ESPManager.Object:FindFirstChild("RedVest") and Toggles['SeekerESP'].Value then
-            if ESPManager.Connections.SeekerPlayerConn then
-                ESPManager.Connections.SeekerPlayerConn:Disconnect()
-            end
-            ESPManager.Connections.SeekerPlayerConn = Script.Functions.OnceOnGameChanged(function()
-                ESPManager.SetColor(Options['PlayerEspColor'].Value)
-                ESPManager.Text = ESPManager.Text:gsub('(Seeker)', "")
-            end)
-            ESPManager.Color = Options['SeekerEspColor'].Value
-            ESPManager.Text = ESPManager.Text.."(Seeker)"
-        end
+        Script.Functions.ApplyHiderSeekerEsp(ESPManager)
     end
     if ESPManager.Object:IsA("BasePart") then
         Highlight(ESPManager.Object)
@@ -386,7 +392,7 @@ end
 function Script.Functions.GuardESP(character)
     if character then
         if not character:WaitForChild("Humanoid", 2) then
-            print('Guard finded, but Humanoid child not')
+            warn('Guard finded, but Humanoid child not')
         else
             local guardEsp = Script.Functions.ESP({
                 Object = character,
@@ -514,8 +520,6 @@ Script.Functions.OnLoad = function()
         if player == lplr then return end
         Script.Functions.SetupOtherPlayerConnection(player)
     end))
-    Script.Functions.EffectsNotification("Voidware - Ink Game loaded!", 5)
-    Script.Functions.EffectsNotification("Join discord.gg/voidware for updates :)", 5)
 end
 
 Library:OnUnload(function()
@@ -2134,7 +2138,7 @@ local MiscGroup = Tabs.Misc:AddLeftGroupbox("Misc", "wrench") do
             end
         end
     end)
-    MiscGroup:AddButton("Reset Camera \n [Might Break your camera!]", Script.Functions.FixCamera)
+    MiscGroup:AddButton("Reset Camera \n [Might Break camera!]", Script.Functions.FixCamera)
     MiscGroup:AddButton("Skip Cutscene", function()
         -- Script.Functions.FixCamera
         if camera then
@@ -2144,7 +2148,6 @@ local MiscGroup = Tabs.Misc:AddLeftGroupbox("Misc", "wrench") do
             end
         end
     end)
-    MiscGroup:AddDivider()
     MiscGroup:AddToggle("TeleportToSafePlace", {
         Text = "Teleport To Safe Place",
         Default = false
@@ -3041,28 +3044,7 @@ Library:GiveSignal(workspace:WaitForChild("Values"):WaitForChild("CurrentGame"):
             end
         end
         for _, esp in pairs(Script.ESPTable["Player"]) do
-            if esp.Object:FindFirstChild("BlueVest") and Toggles['HiderESP'].Value then
-                if ESPManager.Connections.HiderPlayerConn then
-                    ESPManager.Connections.HiderPlayerConn:Disconnect()
-                end
-                ESPManager.Connections.HiderPlayerConn = Script.Functions.OnceOnGameChanged(function()
-                    ESPManager.SetColor(Options['PlayerEspColor'].Value)
-                    ESPManager.Text = ESPManager.Text:gsub('(Hider)', "")
-                end)
-                ESPManager.Color = Options['HiderEspColor'].Value
-                ESPManager.Text = ESPManager.Text.."(Hider)"
-            end
-            if not esp.Object:FindFirstChild("BlueVest") and Toggles['SeekerESP'].Value then
-                if ESPManager.Connections.SeekerPlayerConn then
-                    ESPManager.Connections.SeekerPlayerConn:Disconnect()
-                end
-                ESPManager.Connections.SeekerPlayerConn = Script.Functions.OnceOnGameChanged(function()
-                    ESPManager.SetColor(Options['PlayerEspColor'].Value)
-                    ESPManager.Text = ESPManager.Text:gsub('(Seeker)', "")
-                end)
-                ESPManager.Color = Options['SeekerEspColor'].Value
-                ESPManager.Text = ESPManager.Text.."(Seeker)"
-            end
+            Script.Functions.ApplyHiderSeekerEsp(esp)
         end
     end
     if Script.GameState == "TugOfWar" then
@@ -3088,7 +3070,6 @@ Library:GiveSignal(workspace:WaitForChild("Values"):WaitForChild("CurrentGame"):
             end
         end
     end
-    print('Game:', Script.GameState)
 end))
 
 function Script.Functions.AutoPull(call)
@@ -3111,37 +3092,26 @@ end
 
 Toggles.AutoPull:OnChanged(Script.Functions.AutoPull)
 
-function Script.Functions.SkipDialogue()
-    local args = {
-        "Skipped"
-    }
-    ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("DialogueRemote"):FireServer(unpack(args))    
-end
-
 local Useful = Tabs.Other:AddRightGroupbox("Useful Stuff", "star") do
     Useful:AddToggle("AutoSkipDialog", {
         Text = "Auto Skip Dialogue",
         Default = false
     }):OnChanged(function(call)
+        if Script.Temp.AutoSkipDialogLoop then
+            task.cancel(Script.Temp.AutoSkipDialogLoop)
+            Script.Temp.AutoSkipDialogLoop = nil
+        end
         if call then
             Script.Temp.AutoSkipDialogLoop = task.spawn(function()
                 local PlayerGui = lplr:FindFirstChild("PlayerGui")
                 local DialogueFrameAnnouncement = PlayerGui and PlayerGui:FindFirstChild("DialogueGUI") and PlayerGui.DialogueGUI:FindFirstChild("DialogueFrameAnnouncement")
                 while Toggles.AutoSkipDialog.Value and not Library.Unloaded do
-                    if lplr:GetAttribute("_DialogueOpen") then
-                        Script.Functions.SkipDialogue()
-                    end
-                    if DialogueFrameAnnouncement and DialogueFrameAnnouncement.Visible then
-                        Script.Functions.SkipDialogue()
+                    if lplr:GetAttribute("_DialogueOpen") or (DialogueFrameAnnouncement and DialogueFrameAnnouncement.Visible) then
+                        ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("DialogueRemote"):FireServer(unpack({"Skipped"}))
                     end
                     task.wait(1)
                 end
             end)
-        else
-            if Script.Temp.AutoSkipDialogLoop then
-                task.cancel(Script.Temp.AutoSkipDialogLoop)
-                Script.Temp.AutoSkipDialogLoop = nil
-            end
         end
     end)
 
@@ -3246,13 +3216,12 @@ local MenuGroup = Tabs["UI Settings"]:AddLeftGroupbox("Menu", "menu") do
             Library.ShowCustomCursor = Value
         end
     })
-    MenuGroup:AddDivider()
     MenuGroup:AddLabel("Menu bind"):AddKeyPicker("MenuKeybind", {
         Default = "RightShift",
         NoUI = false,
         Text = "Menu keybind"
     })
-    MenuGroup:AddButton("Unload", function() Library:Unload() end)
+    MenuGroup:AddButton("Unload Script", function() Library:Unload() end)
 end
 Library.ToggleKeybind = Options.MenuKeybind
 
