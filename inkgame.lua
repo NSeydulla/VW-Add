@@ -13,16 +13,14 @@ if not getgenv().shared then
     getgenv().shared = {}
 end
 
-if not getgenv().voidware_loaded then
-    getgenv().voidware_loaded = true
-else
+if getgenv().shared.Voidware_InkGame_Library then
     local suc = pcall(function()
-        shared.Voidware_InkGame_Library:Unload()
+        getgenv().shared.Voidware_InkGame_Library:Unload()
     end)
     if not suc then
         return
     end
-    while shared.Voidware_InkGame_Library ~= nil do
+    while getgenv().shared.Voidware_InkGame_Library ~= nil do
         task.wait(0.1)
     end
 end
@@ -68,7 +66,7 @@ end
 local repo = "https://raw.githubusercontent.com/mstudio45/"..tostring(targetlib).."/main/"
 
 local Library = loadstring(game:HttpGet(repo .. "Library.lua"))()
-shared.Voidware_InkGame_Library = Library
+getgenv().shared.Voidware_InkGame_Library = Library
 local ThemeManager = loadstring(game:HttpGet(repo .. "addons/ThemeManager.lua"))()
 local SaveManager = loadstring(game:HttpGet(repo .. "addons/SaveManager.lua"))()
 local Options
@@ -241,9 +239,6 @@ function Script.Functions.ESP(args: ESP)
     end
 
     if ESPManager.Type == "Player" then
-        print(ESPManager.Object:GetFullName())
-        print(ESPManager.Text, "parent.IsHider:", ESPManager.Object.Parent:GetAttribute("IsHider"), "|", "parent.IsHunter:", ESPManager.Object.Parent:GetAttribute("IsHunter"))
-        print(ESPManager.Text, "IsHider:", ESPManager.Object:GetAttribute("IsHider"), "|", "IsHunter:", ESPManager.Object:GetAttribute("IsHunter"))
         if ESPManager.Object:FindFirstChild("BlueVest") and Toggles['HiderESP'].Value then
             local origColor = ESPManager.Color
             local origText = ESPManager.Text
@@ -393,18 +388,22 @@ end
 
 function Script.Functions.GuardESP(character)
     if character then
-        local guardEsp = Script.Functions.ESP({
-            Object = character,
-            Text = ".",
-            Color = Options.GuardEspColor.Value,
-            Offset = Vector3.new(0, 4, 0),
-            Type = "Guard"
-        })
-        guardEsp.GiveSignal(character.ChildAdded:Connect(function(v)
-            if v.Name == "Dead" and v.ClassName == "Folder" then
-                guardEsp.Destroy()
-            end
-        end))
+        if not character:WaitForChild("Humanoid", 2) then
+            print('Guard finded, but Humanoid child not')
+        else
+            local guardEsp = Script.Functions.ESP({
+                Object = character,
+                Text = ".",
+                Color = Options.GuardEspColor.Value,
+                Offset = Vector3.new(0, 4, 0),
+                Type = "Guard"
+            })
+            guardEsp.GiveSignal(character.ChildAdded:Connect(function(v)
+                if v.Name == "Dead" and v.ClassName == "Folder" then
+                    guardEsp.Destroy()
+                end
+            end))
+        end
     end
 end
 
@@ -551,8 +550,7 @@ Library:OnUnload(function()
         end
     end
     Library.Unloaded = true
-    getgenv().voidware_loaded = false
-    shared.Voidware_InkGame_Library = nil
+    getgenv().shared.Voidware_InkGame_Library = nil
 end)
 
 local EffectsModule
@@ -986,11 +984,11 @@ local MAIN_ESP_META = {
         func = function()
             local live = workspace:FindFirstChild("Live")
             if not live then return end
-            for _, descendant in pairs(live:GetChildren()) do
-                if descendant:IsA("Model") and descendant:FindFirstChild("TypeOfGuard") then
-                    if string.find(descendant.Name, "Rebel") or string.find(descendant.Name, "HallwayGuard") or string.find(string.lower(descendant.Name), "aggro") then
-                        if descendant:FindFirstChild("Dead") then continue end
-                        Script.Functions.GuardESP(descendant)
+            for _, child in pairs(live:GetChildren()) do
+                if child:FindFirstChild("TypeOfGuard") then
+                    if string.find(child.Name, "Rebel") or string.find(child.Name, "HallwayGuard") or string.find(string.lower(child.Name), "aggro") then
+                        if child:FindFirstChild("Dead") then continue end
+                        Script.Functions.GuardESP(child)
                     end
                 end
             end
@@ -3002,9 +3000,6 @@ Library:GiveSignal(workspace:WaitForChild("Values"):WaitForChild("CurrentGame"):
     if Script.GameState == "HideAndSeek" then
         Script.GameIsHideAndSeek = true
         for _, esp in pairs(Script.ESPTable["Player"]) do
-            print(esp.Object:GetFullName())
-            print(esp.Text, "parent.IsHider:", esp.Object.Parent:GetAttribute("IsHider"), "|", "parent.IsHunter:", esp.Object.Parent:GetAttribute("IsHunter"))
-            print(esp.Text, "IsHider:", esp.Object:GetAttribute("IsHider"), "|", "IsHunter:", esp.Object:GetAttribute("IsHunter"))
             if esp.Object:FindFirstChild("BlueVest") and Toggles['HiderESP'].Value then
                 local origColor = esp.Color
                 local origText = esp.Text
@@ -3222,11 +3217,7 @@ Options.LibraryChoice:OnChanged(function(val)
     if val == targetlib then return end
     writefile("Voidware_InkGame_Library_Choice.txt", val)
     Library:Unload()
-    if shared.VoidDev and isfile("inkgame.lua") then
-        loadstring(readfile("inkgame.lua"))()
-    else
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/NSeydulla/VW-Add/main/inkgame.lua", true))()
-    end
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/NSeydulla/VW-Add/main/inkgame.lua", true))()
 end)
 
 LibraryChangeGroup:AddButton("Save Settings", function()
