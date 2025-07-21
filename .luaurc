@@ -1,0 +1,14 @@
+{
+  "languageMode": "nocheck",
+  "globals": [
+    "getgenv",
+    "isfolder",
+    "makefolder",
+    "writefile",
+    "hookmetamethod",
+    "getrawmetatable",
+    "getnamecallmethod",
+    "setreadonly",
+    "checkcaller"
+  ]
+}
