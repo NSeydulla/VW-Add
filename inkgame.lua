@@ -22,8 +22,17 @@ end
 
 pcall(function()
     local isNew = false
-    for _, v in pairs({"voidware_linoria", "voidware_linoria/ink_game", "voidware_linoria/themes", "voidware_linoria/ink_game/settings", "voidware_linoria/ink_game/themes"}) do
-        if not isfolder(v) then makefolder(v); isNew = true; end
+    for _, v in pairs({
+        "voidware_linoria",
+        "voidware_linoria/ink_game",
+        "voidware_linoria/themes",
+        "voidware_linoria/ink_game/settings",
+        "voidware_linoria/ink_game/themes",
+    }) do
+        if not isfolder(v) then
+            makefolder(v)
+            isNew = true
+        end
     end
 
     if isNew then
@@ -54,7 +63,7 @@ local Window = Library:CreateWindow({
     Resizable = true,
     ShowCustomCursor = true,
     TabPadding = 2,
-    MenuFadeTime = 0
+    MenuFadeTime = 0,
 })
 
 local Tabs = {
@@ -112,11 +121,11 @@ local Script = {
                 warn(`[Services] Warning: "{key}" is not a valid Roblox service.`)
                 return nil
             end
-        end
+        end,
     }),
     Connections = {
         PlayerCharAdded = {},
-        GuardCharAdded = {}
+        GuardCharAdded = {},
     },
     Tasks = {},
     Functions = {},
@@ -128,19 +137,21 @@ local Script = {
         Seeker = {},
         None = {},
         Key = {},
-        ["Escape Door"] = {}
+        ["Escape Door"] = {},
     },
     HookMethods = {},
-    Temp = {}
+    Temp = {},
 }
 
 Script.Temp.OriginalNameCall = hookmetamethod(game, "__namecall", function(self, ...)
-    local args = {...}
+    local args = { ... }
     local method = getnamecallmethod()
 
     for _, func in pairs(Script.HookMethods) do
         args = func(tostring(self), method, args)
-        if not args then return end
+        if not args then
+            return
+        end
     end
 
     return Script.Temp.OriginalNameCall(self, unpack(args))
@@ -163,16 +174,21 @@ function Script.Functions.OnLoad()
     pcall(function()
         Script.Functions.OnGameStateChange()
     end)
-    Script.Connections.OnGameStateChange = workspace:WaitForChild("Values"):WaitForChild("CurrentGame"):GetPropertyChangedSignal("Value")
-        :Connect(
-            Script.Functions.OnGameStateChange
-        )
+    Script.Connections.OnGameStateChange = workspace
+        :WaitForChild("Values")
+        :WaitForChild("CurrentGame")
+        :GetPropertyChangedSignal("Value")
+        :Connect(Script.Functions.OnGameStateChange)
     for _, player in pairs(Players:GetPlayers()) do
-        if player == lplr then continue end
+        if player == lplr then
+            continue
+        end
         Script.Functions.SetupPlayerConnection(player)
     end
     Script.Connections.PlayerAdded = Players.PlayerAdded:Connect(function(player)
-        if player == lplr then return end
+        if player == lplr then
+            return
+        end
         Script.Functions.SetupPlayerConnection(player)
     end)
     task.spawn(function()
@@ -255,12 +271,14 @@ function Script.Functions.SetupPlayerConnection(player: Player)
 end
 
 function Script.Functions.SafeRequire(module)
-    if Script.Temp[tostring(module)] then return Script.Temp[tostring(module)] end
+    if Script.Temp[tostring(module)] then
+        return Script.Temp[tostring(module)]
+    end
     local suc, err = pcall(function()
         return require(module)
     end)
     if not suc then
-        Script.Functions.Alert("[SafeRequire]: Failure loading "..tostring(module).." ("..tostring(err)..")")
+        Script.Functions.Alert("[SafeRequire]: Failure loading " .. tostring(module) .. " (" .. tostring(err) .. ")")
     else
         Script.Temp[tostring(module)] = err
     end
@@ -270,7 +288,8 @@ end
 function Script.Functions.Alert(message: string, time_obj: number)
     Library:Notify(message, time_obj or 5)
 
-    local sound = Instance.new("Sound", workspace) do
+    local sound = Instance.new("Sound", workspace)
+    do
         sound.SoundId = "rbxassetid://4590662766"
         sound.Volume = 2
         sound.PlayOnRemove = true
@@ -279,12 +298,16 @@ function Script.Functions.Alert(message: string, time_obj: number)
 end
 
 function Script.Functions.GetRootPart()
-    if not lplr.Character then return end
+    if not lplr.Character then
+        return
+    end
     return lplr.Character:WaitForChild("HumanoidRootPart", 10)
 end
 
 function Script.Functions.GetHumanoid()
-    if not lplr.Character then return end
+    if not lplr.Character then
+        return
+    end
     return lplr.Character:WaitForChild("Humanoid", 10)
 end
 
@@ -313,7 +336,7 @@ end
 function Script.Functions.OnGameStateChange()
     Script.Temp.OldDeathLocation = nil
     Script.GameState = workspace.Values.CurrentGame.Value
-    print("Game State: '"..Script.GameState.."'")
+    print("Game State: '" .. Script.GameState .. "'")
     if Script.GameState then
         Script.GameState = tostring(Script.GameState)
     end
@@ -386,7 +409,9 @@ function Script.Functions.OnceOnGameChanged(func)
 end
 
 function Script.Functions.ESP(args: ESP)
-    if not args.Object then return Script.Functions.Alert("ESP Object is nil") end
+    if not args.Object then
+        return Script.Functions.Alert("ESP Object is nil")
+    end
 
     local ESPManager = {
         Object = args.Object,
@@ -399,7 +424,7 @@ function Script.Functions.ESP(args: ESP)
         Highlights = {},
         Humanoid = nil,
 
-        Connections = {}
+        Connections = {},
     }
 
     local tableIndex = #Script.ESPTable[ESPManager.Type] + 1
@@ -424,7 +449,8 @@ function Script.Functions.ESP(args: ESP)
         end
     end
 
-    local billboardGui = Instance.new("BillboardGui") do
+    local billboardGui = Instance.new("BillboardGui")
+    do
         billboardGui.Adornee = ESPManager.TextParent or ESPManager.Object
         billboardGui.AlwaysOnTop = true
         billboardGui.ClipsDescendants = false
@@ -433,7 +459,8 @@ function Script.Functions.ESP(args: ESP)
         billboardGui.Parent = ESPManager.TextParent or ESPManager.Object
     end
 
-    local textLabel = Instance.new("TextLabel") do
+    local textLabel = Instance.new("TextLabel")
+    do
         textLabel.BackgroundTransparency = 1
         textLabel.Font = Enum.Font.Oswald
         textLabel.Size = UDim2.new(1, 0, 1, 0)
@@ -465,7 +492,9 @@ function Script.Functions.ESP(args: ESP)
         for _, highlight in pairs(ESPManager.Highlights) do
             highlight:Destroy()
         end
-        if billboardGui then billboardGui:Destroy() end
+        if billboardGui then
+            billboardGui:Destroy()
+        end
 
         if Script.ESPTable[ESPManager.Type][tableIndex] then
             Script.ESPTable[ESPManager.Type][tableIndex] = nil
@@ -489,7 +518,11 @@ function Script.Functions.ESP(args: ESP)
         textLabel.TextSize = Options.ESPTextSize.Value
 
         if Toggles.ESPDistance.Value then
-            textLabel.Text = string.format("%s\n[%s]", ESPManager.Text, math.floor(Script.Functions.DistanceFromCharacter(ESPManager.Object)))
+            textLabel.Text = string.format(
+                "%s\n[%s]",
+                ESPManager.Text,
+                math.floor(Script.Functions.DistanceFromCharacter(ESPManager.Object))
+            )
         else
             textLabel.Text = ESPManager.Text
         end
@@ -507,14 +540,14 @@ function Script.Functions.GuardESP(character)
     if character then
         task.spawn(function()
             if not character:WaitForChild("Humanoid", 5) then
-                Script.Functions.Alert('Guard finded, but Humanoid child not')
+                Script.Functions.Alert("Guard finded, but Humanoid child not")
             else
                 local guardESP = Script.Functions.ESP({
                     Object = character,
                     Text = ".",
                     Color = Options.GuardESPColor.Value,
                     Offset = Vector3.new(0, 4, 0),
-                    Type = "Guard"
+                    Type = "Guard",
                 })
                 guardESP.GiveSignal(character.ChildAdded:Connect(function(v)
                     if v.Name == "Dead" and v.ClassName == "Folder" then
@@ -527,7 +560,16 @@ function Script.Functions.GuardESP(character)
 end
 
 function Script.Functions.PlayerESP(player: Player)
-    if not (player.Character and player.Character.PrimaryPart and player.Character:FindFirstChild("Humanoid") and player.Character.Humanoid.Health > 0) then return end
+    if
+        not (
+            player.Character
+            and player.Character.PrimaryPart
+            and player.Character:FindFirstChild("Humanoid")
+            and player.Character.Humanoid.Health > 0
+        )
+    then
+        return
+    end
 
     local playerESP = Script.Functions.ESP({
         Type = "Player",
@@ -535,7 +577,7 @@ function Script.Functions.PlayerESP(player: Player)
         Text = string.format("%s [%s]", player.DisplayName, math.ceil(player.Character.Humanoid.Health)),
         TextParent = player.Character.PrimaryPart,
         Offset = Vector3.new(0, 1, 0),
-        Color = Options.PlayerESPColor.Value
+        Color = Options.PlayerESPColor.Value,
     })
 
     playerESP.GiveSignal(player.Character.Humanoid.HealthChanged:Connect(function(newHealth)
@@ -553,19 +595,19 @@ function Script.Functions.ApplyHiderSeekerESP(esp)
     end
     if esp.Object:FindFirstChild("BlueVest") then
         esp.Connections.HASPlayerConn = Script.Functions.OnceOnGameChanged(function()
-            esp.SetColor(Options['PlayerESPColor'].Value)
-            esp.Text = esp.Text:gsub('%(Hider%)', "")
+            esp.SetColor(Options["PlayerESPColor"].Value)
+            esp.Text = esp.Text:gsub("%(Hider%)", "")
         end)
-        esp.SetColor(Options['HiderESPColor'].Value)
-        esp.Text = esp.Text.."(Hider)"
+        esp.SetColor(Options["HiderESPColor"].Value)
+        esp.Text = esp.Text .. "(Hider)"
     end
     if not esp.Object:FindFirstChild("BlueVest") then
         esp.Connections.HASPlayerConn = Script.Functions.OnceOnGameChanged(function()
-            esp.SetColor(Options['PlayerESPColor'].Value)
-            esp.Text = esp.Text:gsub('%(Seeker%)', "")
+            esp.SetColor(Options["PlayerESPColor"].Value)
+            esp.Text = esp.Text:gsub("%(Seeker%)", "")
         end)
-        esp.SetColor(Options['SeekerESPColor'].Value)
-        esp.Text = esp.Text.."(Seeker)"
+        esp.SetColor(Options["SeekerESPColor"].Value)
+        esp.Text = esp.Text .. "(Seeker)"
     end
 end
 
@@ -582,9 +624,11 @@ function Script.Functions.KeyESP(key)
 end
 
 function Script.Functions.DoorESP(door)
-    if door.Name ~= "FullDoorAnimated" then return end
+    if door.Name ~= "FullDoorAnimated" then
+        return
+    end
     local keyNeeded = door:GetAttribute("KeyNeeded")
-    keyNeeded = keyNeeded and " (Key: "..keyNeeded..")" or ""
+    keyNeeded = keyNeeded and " (Key: " .. keyNeeded .. ")" or ""
     Script.Functions.ESP({
         Object = door,
         Text = "Door" .. keyNeeded,
@@ -607,13 +651,13 @@ function Script.Functions.EscapeDoorESP(door)
 end
 
 function Script.Functions.ExecuteClick()
-    ReplicatedStorage:WaitForChild("Replication"):WaitForChild("Event"):FireServer(unpack({"Clicked"}))
+    ReplicatedStorage:WaitForChild("Replication"):WaitForChild("Event"):FireServer(unpack({ "Clicked" }))
 end
 
 function Script.Functions.CompleteDalgonaGame()
     Script.Functions.ExecuteClick()
-    Script.Functions.GetDalgonaRemote():FireServer(unpack({{Completed = true}}))
-    Script.Functions.GetDalgonaRemote():FireServer(unpack({{Success = true}}))
+    Script.Functions.GetDalgonaRemote():FireServer(unpack({ { Completed = true } }))
+    Script.Functions.GetDalgonaRemote():FireServer(unpack({ { Success = true } }))
 end
 
 function Script.Functions.BypassDalgonaGame()
@@ -633,7 +677,12 @@ function Script.Functions.BypassDalgonaGame()
         for _, obj in pairs(EffectsFolder:GetChildren()) do
             if obj:IsA("Model") and obj.Name:match("Outline$") then
                 outlineModel = obj
-            elseif obj:IsA("Model") and not obj.Name:match("Outline$") and obj.Name ~= "Pick" and obj.Name ~= "RedDot" then
+            elseif
+                obj:IsA("Model")
+                and not obj.Name:match("Outline$")
+                and obj.Name ~= "Pick"
+                and obj.Name ~= "RedDot"
+            then
                 shapeModel = obj
             elseif obj.Name == "Pick" then
                 pickModel = obj
@@ -673,7 +722,7 @@ function Script.Functions.BypassDalgonaGame()
 
         if shapeModel and shapeModel:FindFirstChild("shape") then
             TweenService:Create(shapeModel.shape, TweenInfo.new(2, Enum.EasingStyle.Quad), {
-                Position = shapeModel.shape.Position + Vector3.new(0, 0.5, 0)
+                Position = shapeModel.shape.Position + Vector3.new(0, 0.5, 0),
             }):Play()
         end
 
@@ -681,7 +730,7 @@ function Script.Functions.BypassDalgonaGame()
             for _, part in pairs(shapeModel:GetChildren()) do
                 if part.Name == "DalgonaClickPart" and part:IsA("BasePart") then
                     TweenService:Create(part, TweenInfo.new(2, Enum.EasingStyle.Quad), {
-                        Transparency = 1
+                        Transparency = 1,
                     }):Play()
                 end
             end
@@ -689,12 +738,12 @@ function Script.Functions.BypassDalgonaGame()
 
         if pickModel and pickModel.Parent then
             TweenService:Create(pickModel, TweenInfo.new(2, Enum.EasingStyle.Quad), {
-                Transparency = 1
+                Transparency = 1,
             }):Play()
         end
         if redDotModel and redDotModel.Parent then
             TweenService:Create(redDotModel, TweenInfo.new(2, Enum.EasingStyle.Quad), {
-                Transparency = 1
+                Transparency = 1,
             }):Play()
         end
 
@@ -702,7 +751,7 @@ function Script.Functions.BypassDalgonaGame()
             for _, part in pairs(pickViewportModel:GetDescendants()) do
                 if part:IsA("BasePart") then
                     TweenService:Create(part, TweenInfo.new(2, Enum.EasingStyle.Quad), {
-                        Transparency = 1
+                        Transparency = 1,
                     }):Play()
                 end
             end
@@ -710,7 +759,20 @@ function Script.Functions.BypassDalgonaGame()
 
         if HumanoidRootPart then
             TweenService:Create(CurrentCamera, TweenInfo.new(2, Enum.EasingStyle.Quad), {
-                CFrame = HumanoidRootPart.CFrame * CFrame.new(0.0841674805, 8.45438766, 6.69675446, 0.999918401, -0.00898250192, 0.00907994807, 3.31699681e-08, 0.710912943, 0.703280032, -0.0127722733, -0.703222632, 0.710854948)
+                CFrame = HumanoidRootPart.CFrame * CFrame.new(
+                    0.0841674805,
+                    8.45438766,
+                    6.69675446,
+                    0.999918401,
+                    -0.00898250192,
+                    0.00907994807,
+                    3.31699681e-08,
+                    0.710912943,
+                    0.703280032,
+                    -0.0127722733,
+                    -0.703222632,
+                    0.710854948
+                ),
             }):Play()
         end
 
@@ -722,12 +784,12 @@ function Script.Functions.BypassDalgonaGame()
         end
 
         DalgonaRemote:FireServer({
-            Success = true
+            Success = true,
         })
 
         task.wait(2)
 
-        for _, obj in pairs({shapeModel, outlineModel, pickModel, redDotModel, progressBar}) do
+        for _, obj in pairs({ shapeModel, outlineModel, pickModel, redDotModel, progressBar }) do
             if obj and obj.Parent then
                 obj:Destroy()
             end
@@ -735,15 +797,21 @@ function Script.Functions.BypassDalgonaGame()
 
         UserInputService.MouseIconEnabled = true
         if PlayerGui:FindFirstChild("Hotbar") and PlayerGui.Hotbar:FindFirstChild("Backpack") then
-            TweenService:Create(PlayerGui.Hotbar.Backpack, TweenInfo.new(1.5, Enum.EasingStyle.Circular, Enum.EasingDirection.InOut), {
-                Position = UDim2.new(0, 0, 0, 0)
-            }):Play()
+            TweenService:Create(
+                PlayerGui.Hotbar.Backpack,
+                TweenInfo.new(1.5, Enum.EasingStyle.Circular, Enum.EasingDirection.InOut),
+                {
+                    Position = UDim2.new(0, 0, 0, 0),
+                }
+            ):Play()
         end
         if progressBar then
             DebrisBD:Fire(progressBar, 2)
-            TweenService:Create(progressBar, TweenInfo.new(1.5, Enum.EasingStyle.Circular, Enum.EasingDirection.InOut), {
-                Position = UDim2.new(progressBar.Position.X.Scale, 0, progressBar.Position.Y.Scale + 1, 0)
-            }):Play()
+            TweenService
+                :Create(progressBar, TweenInfo.new(1.5, Enum.EasingStyle.Circular, Enum.EasingDirection.InOut), {
+                    Position = UDim2.new(progressBar.Position.X.Scale, 0, progressBar.Position.Y.Scale + 1, 0),
+                })
+                :Play()
         end
 
         task.wait(0.5)
@@ -785,7 +853,7 @@ function Script.Functions.BypassDalgonaGame()
             Script.Connections.cameraOverrideConnection = nil
         end
 
-        for _, obj in pairs({shapeModel, outlineModel, pickModel, redDotModel, progressBar}) do
+        for _, obj in pairs({ shapeModel, outlineModel, pickModel, redDotModel, progressBar }) do
             if obj and obj.Parent then
                 obj:Destroy()
             end
@@ -856,7 +924,9 @@ function Script.Functions.EnableAntiFling()
 end
 
 function Script.Functions.TeleportSafe()
-    if not lplr.Character then return end
+    if not lplr.Character then
+        return
+    end
     pcall(function()
         Script.Temp.OldLocation = CFrame.new(Script.Functions.GetRootPart().Position)
     end)
@@ -870,19 +940,27 @@ function Script.Functions.TeleportBackFromSafe()
         Script.Functions.Alert("[Invalid location]")
         return
     end
-    if not lplr.Character then return end
+    if not lplr.Character then
+        return
+    end
     Script.Functions.DisableAntiFling()
     lplr.Character:PivotTo(OldLocation)
 end
 
 function Script.Functions.TeleportSafeHidingSpot()
-    if not lplr.Character then return end
+    if not lplr.Character then
+        return
+    end
     Script.Functions.DisableAntiFling()
     lplr.Character:PivotTo(CFrame.new(Vector3.new(229.9, 1005.3, 169.4)))
 end
 
 local function isGuard(model)
-    if string.find(model.Name, "Rebel") or string.find(model.Name, "HallwayGuard") or string.find(string.lower(model.Name), "aggro") then
+    if
+        string.find(model.Name, "Rebel")
+        or string.find(model.Name, "HallwayGuard")
+        or string.find(string.lower(model.Name), "aggro")
+    then
         return true
     end
     return false
@@ -894,7 +972,9 @@ MainESPGroup:AddToggle("PlayerESP", {
     Callback = function(Value)
         if Value then
             for _, player in pairs(Players:GetPlayers()) do
-                if player == lplr then continue end
+                if player == lplr then
+                    continue
+                end
                 Script.Functions.PlayerESP(player)
             end
         else
@@ -902,14 +982,14 @@ MainESPGroup:AddToggle("PlayerESP", {
                 esp.Destroy()
             end
         end
-    end
+    end,
 }):AddColorPicker("PlayerESPColor", {
     Default = Color3.fromRGB(255, 255, 255),
     Callback = function(Value)
         for _, esp in pairs(Script.ESPTable["Player"]) do
             esp.SetColor(Value)
         end
-    end
+    end,
 })
 
 MainESPGroup:AddToggle("GuardESP", {
@@ -922,7 +1002,9 @@ MainESPGroup:AddToggle("GuardESP", {
         end
         if Value then
             local live = workspace:FindFirstChild("Live")
-            if not live then return end
+            if not live then
+                return
+            end
             Script.Connections.GuardAddedConnection = live.ChildAdded:Connect(function(v)
                 if isGuard(v) then
                     Script.Functions.GuardESP(v)
@@ -930,7 +1012,9 @@ MainESPGroup:AddToggle("GuardESP", {
             end)
             for _, child in pairs(live:GetChildren()) do
                 if isGuard(child) then
-                    if child:FindFirstChild("Dead") then continue end
+                    if child:FindFirstChild("Dead") then
+                        continue
+                    end
                     Script.Functions.GuardESP(child)
                 end
             end
@@ -939,21 +1023,23 @@ MainESPGroup:AddToggle("GuardESP", {
                 esp.Destroy()
             end
         end
-    end
+    end,
 }):AddColorPicker("GuardESPColor", {
     Default = Color3.fromRGB(200, 100, 200),
     Callback = function(Value)
         for _, esp in pairs(Script.ESPTable["Guard"]) do
             esp.SetColor(Value)
         end
-    end
+    end,
 })
 
 HASESPGroup:AddLabel("Hider"):AddColorPicker("HiderESPColor", {
     Default = Color3.fromRGB(0, 255, 0),
     Callback = function(Value)
-        if Script.GameState ~= "HideAndSeek" then return end
-        for _, esp in pairs(Script.ESPTable['Player']) do
+        if Script.GameState ~= "HideAndSeek" then
+            return
+        end
+        for _, esp in pairs(Script.ESPTable["Player"]) do
             if esp.Text:sub(-7) == "(Hider)" then
                 esp.SetColor(Value)
             end
@@ -964,8 +1050,10 @@ HASESPGroup:AddLabel("Hider"):AddColorPicker("HiderESPColor", {
 HASESPGroup:AddLabel("Seeker"):AddColorPicker("SeekerESPColor", {
     Default = Color3.fromRGB(255, 0, 0),
     Callback = function(Value)
-        if Script.GameState ~= "HideAndSeek" then return end
-        for _, esp in pairs(Script.ESPTable['Player']) do
+        if Script.GameState ~= "HideAndSeek" then
+            return
+        end
+        for _, esp in pairs(Script.ESPTable["Player"]) do
             if esp.Text:sub(-8) == "(Seeker)" then
                 esp.SetColor(Value)
             end
@@ -986,7 +1074,9 @@ HASESPGroup:AddToggle("KeyESP", {
             Script.Connections["KeyESPDescendant"] = nil
         end
         if Value then
-            if Script.GameState ~= "HideAndSeek" then return end
+            if Script.GameState ~= "HideAndSeek" then
+                return
+            end
             local EffectsFolder = workspace:FindFirstChild("Effects")
             for _, key in pairs(EffectsFolder:GetChildren()) do
                 Script.Functions.KeyESP(key)
@@ -1002,14 +1092,14 @@ HASESPGroup:AddToggle("KeyESP", {
                 esp.Destroy()
             end
         end
-    end
+    end,
 }):AddColorPicker("KeyESPColor", {
     Default = Color3.fromRGB(255, 255, 0),
     Callback = function(Value)
         for _, esp in pairs(Script.ESPTable["Key"]) do
             esp.SetColor(Value)
         end
-    end
+    end,
 })
 
 HASESPGroup:AddToggle("DoorESP", {
@@ -1025,7 +1115,9 @@ HASESPGroup:AddToggle("DoorESP", {
             Script.Connections["DoorESPDescendant"] = nil
         end
         if Value then
-            if Script.GameState ~= "HideAndSeek" then return end
+            if Script.GameState ~= "HideAndSeek" then
+                return
+            end
             local hideAndSeekMap = workspace:FindFirstChild("HideAndSeekMap")
             if not hideAndSeekMap then
                 Script.Functions.Alert("Hide And Seek map not found!")
@@ -1048,14 +1140,14 @@ HASESPGroup:AddToggle("DoorESP", {
                 esp.Destroy()
             end
         end
-    end
+    end,
 }):AddColorPicker("DoorESPColor", {
     Default = Color3.fromRGB(0, 128, 255),
     Callback = function(Value)
         for _, esp in pairs(Script.ESPTable["Door"]) do
             esp.SetColor(Value)
         end
-    end
+    end,
 })
 
 HASESPGroup:AddToggle("EscapeDoorESP", {
@@ -1071,7 +1163,9 @@ HASESPGroup:AddToggle("EscapeDoorESP", {
             Script.Connections["EscapeDoorESPDescendant"] = nil
         end
         if Value then
-            if Script.GameState ~= "HideAndSeek" then return end
+            if Script.GameState ~= "HideAndSeek" then
+                return
+            end
             local hideAndSeekMap = workspace:FindFirstChild("HideAndSeekMap")
             if not hideAndSeekMap then
                 Script.Functions.Alert("Hide And Seek map not found!")
@@ -1100,14 +1194,14 @@ HASESPGroup:AddToggle("EscapeDoorESP", {
                 esp.Destroy()
             end
         end
-    end
+    end,
 }):AddColorPicker("EscapeDoorESPColor", {
     Default = Color3.fromRGB(255, 0, 255),
     Callback = function(Value)
         for _, esp in pairs(Script.ESPTable["Escape Door"]) do
             esp.SetColor(Value)
         end
-    end
+    end,
 })
 
 ESPSettingsGroup:AddToggle("ESPHighlight", {
@@ -1125,7 +1219,7 @@ ESPSettingsGroup:AddSlider("ESPTransparency", {
     Default = 0.75,
     Min = 0,
     Max = 1,
-    Rounding = 2
+    Rounding = 2,
 })
 
 ESPSettingsGroup:AddSlider("ESPTextSize", {
@@ -1133,9 +1227,8 @@ ESPSettingsGroup:AddSlider("ESPTextSize", {
     Default = 22,
     Min = 16,
     Max = 26,
-    Rounding = 0
+    Rounding = 0,
 })
-
 
 FOVGroupBox:AddToggle("FOVToggle", {
     Text = "FOV",
@@ -1150,12 +1243,14 @@ FOVGroupBox:AddToggle("FOVToggle", {
             Script.Tasks.FOVChangeTask = task.spawn(function()
                 while Toggles.FOVToggle.Value and not Library.Unloaded do
                     task.wait()
-                    if not camera then continue end
+                    if not camera then
+                        continue
+                    end
                     camera.FieldOfView = Options.FOVSlider.Value
                 end
             end)
         end
-    end
+    end,
 })
 
 FOVGroupBox:AddSlider("FOVSlider", {
@@ -1163,7 +1258,7 @@ FOVGroupBox:AddSlider("FOVSlider", {
     Default = 60,
     Min = 10,
     Max = 120,
-    Rounding = 1
+    Rounding = 1,
 })
 
 InteractionGroup:AddToggle("NoInteractDelay", {
@@ -1174,11 +1269,13 @@ InteractionGroup:AddToggle("NoInteractDelay", {
             Script.Connections.NoInteractDelayConnection:Disconnect()
             Script.Connections.NoInteractDelayConnection = nil
         end
-        if not Value then return end
+        if not Value then
+            return
+        end
         Script.Connections.NoInteractDelayConnection = ProximityPromptService.PromptShown:Connect(function(prompt)
             prompt.HoldDuration = 0
         end)
-    end
+    end,
 })
 
 Script.Temp.ActivePrompts = {}
@@ -1197,7 +1294,9 @@ function Script.Functions.PromptDistChange(prompt)
 end
 
 function Script.Functions.AllPromptDistChange()
-    if not Toggles.PromptReachToggle.Value then return end
+    if not Toggles.PromptReachToggle.Value then
+        return
+    end
     for _, prompt in pairs(Script.Temp.ActivePrompts) do
         Script.Functions.PromptDistChange(prompt)
     end
@@ -1218,7 +1317,7 @@ InteractionGroup:AddToggle("PromptReachToggle", {
         Script.Connections.PromptReachConnection = workspace.DescendantAdded:Connect(function(prompt)
             Script.Functions.PromptDistChange(prompt)
         end)
-    end
+    end,
 })
 
 InteractionGroup:AddSlider("PromptReachSlider", {
@@ -1229,13 +1328,19 @@ InteractionGroup:AddSlider("PromptReachSlider", {
     Rounding = 1,
     Callback = function(_)
         Script.Functions.AllPromptDistChange()
-    end
+    end,
 })
 
 function Script.Functions.FindCarryPrompt(plr)
-    if not plr.Character then return false end
-    if not plr.Character:FindFirstChild("HumanoidRootPart") then return false end
-    if not (plr.Character:FindFirstChild("Humanoid") and plr.Character:FindFirstChild("Humanoid").Health > 0) then return false end
+    if not plr.Character then
+        return false
+    end
+    if not plr.Character:FindFirstChild("HumanoidRootPart") then
+        return false
+    end
+    if not (plr.Character:FindFirstChild("Humanoid") and plr.Character:FindFirstChild("Humanoid").Health > 0) then
+        return false
+    end
 
     local CarryPrompt = plr.Character.HumanoidRootPart:FindFirstChild("CarryPrompt")
     return CarryPrompt
@@ -1244,19 +1349,31 @@ end
 function Script.Functions.GetAllInjuredPlayers()
     local injured = {}
     for _, plr in pairs(Players:GetPlayers()) do
-        if plr == lplr then continue end
-        if plr:GetAttribute("IsDead") then continue end
+        if plr == lplr then
+            continue
+        end
+        if plr:GetAttribute("IsDead") then
+            continue
+        end
         local CarryPrompt = Script.Functions.FindCarryPrompt(plr)
-        if not CarryPrompt then continue end
-        if plr.Character and plr.Character:FindFirstChild("SafeRedLightGreenLight") then continue end
-        if plr.Character and plr.Character:FindFirstChild("IsBeingHeld") then continue end
-        table.insert(injured, {player = plr, carryPrompt = CarryPrompt})
+        if not CarryPrompt then
+            continue
+        end
+        if plr.Character and plr.Character:FindFirstChild("SafeRedLightGreenLight") then
+            continue
+        end
+        if plr.Character and plr.Character:FindFirstChild("IsBeingHeld") then
+            continue
+        end
+        table.insert(injured, { player = plr, carryPrompt = CarryPrompt })
     end
     return injured
 end
 
 function Script.Functions.WinRLGL()
-    if not lplr.Character then return end
+    if not lplr.Character then
+        return
+    end
     Script.Functions.DisableAntiFling()
     lplr.Character:PivotTo(CFrame.new(Vector3.new(-100.8, 1030, 115)))
 end
@@ -1266,11 +1383,15 @@ GreenLightRedLightGroup:AddToggle("RedLightGodmode", {
     Default = false,
     Callback = function(Value)
         if Script.Connections.RLGLConnDestroyer then
-            pcall(function() Script.Connections.RLGLConnDestroyer:Disconnect() end)
+            pcall(function()
+                Script.Connections.RLGLConnDestroyer:Disconnect()
+            end)
             Script.Connections.RLGLConnDestroyer = nil
         end
         if Script.Connections.RLGL_Connection then
-            pcall(function() Script.Connections.RLGL_Connection:Disconnect() end)
+            pcall(function()
+                Script.Connections.RLGL_Connection:Disconnect()
+            end)
             Script.Connections.RLGL_Connection = nil
         end
         Script.HookMethods.RLGLGodmode = nil
@@ -1283,21 +1404,34 @@ GreenLightRedLightGroup:AddToggle("RedLightGodmode", {
             Toggles.RedLightGodMode:SetValue(false)
             return
         end
-        if Script.GameState ~= "RedLightGreenLight" then return end
-        local TrafficLightImage = lplr.PlayerGui:FindFirstChild("ImpactFrames") and lplr.PlayerGui.ImpactFrames:FindFirstChild("TrafficLightEmpty")
+        if Script.GameState ~= "RedLightGreenLight" then
+            return
+        end
+        local TrafficLightImage = lplr.PlayerGui:FindFirstChild("ImpactFrames")
+            and lplr.PlayerGui.ImpactFrames:FindFirstChild("TrafficLightEmpty")
         local lastRootPartCFrame = nil
         local isGreenLight = true
-        if TrafficLightImage and ReplicatedStorage:FindFirstChild("Effects") and ReplicatedStorage.Effects:FindFirstChild("Images") and ReplicatedStorage.Effects.Images:FindFirstChild("TrafficLights") and ReplicatedStorage.Effects.Images.TrafficLights:FindFirstChild("GreenLight") then
+        if
+            TrafficLightImage
+            and ReplicatedStorage:FindFirstChild("Effects")
+            and ReplicatedStorage.Effects:FindFirstChild("Images")
+            and ReplicatedStorage.Effects.Images:FindFirstChild("TrafficLights")
+            and ReplicatedStorage.Effects.Images.TrafficLights:FindFirstChild("GreenLight")
+        then
             isGreenLight = TrafficLightImage.Image == ReplicatedStorage.Effects.Images.TrafficLights.GreenLight.Image
         end
-        Script.Connections.RLGL_Connection = ReplicatedStorage.Remotes.Effects.OnClientEvent:Connect(function(EffectsData)
-            if EffectsData.EffectName ~= "TrafficLight" then return end
-            isGreenLight = EffectsData.GreenLight == true
-            local root = Script.Functions.GetRootPart()
-            if root then
-                lastRootPartCFrame = root.CFrame
+        Script.Connections.RLGL_Connection = ReplicatedStorage.Remotes.Effects.OnClientEvent:Connect(
+            function(EffectsData)
+                if EffectsData.EffectName ~= "TrafficLight" then
+                    return
+                end
+                isGreenLight = EffectsData.GreenLight == true
+                local root = Script.Functions.GetRootPart()
+                if root then
+                    lastRootPartCFrame = root.CFrame
+                end
             end
-        end)
+        )
         Script.HookMethods.RLGLGodmode = function(self, method, args)
             if self == "rootCFrame" and method == "FireServer" then
                 if not isGreenLight and lastRootPartCFrame then
@@ -1310,7 +1444,7 @@ GreenLightRedLightGroup:AddToggle("RedLightGodmode", {
             Toggles.RedLightGodmode.Callback(false)
         end)
         Script.Functions.Alert("Red Light Green Light Godmode Enabled", 3)
-    end
+    end,
 })
 
 GreenLightRedLightGroup:AddButton("Complete Red Light / Green Light", function()
@@ -1356,7 +1490,9 @@ GreenLightRedLightGroup:AddButton("Bring Random Injured Player", function()
         task.wait(0.2)
         Script.Functions.WinRLGL()
         task.wait(0.2)
-        ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("ClickedButton"):FireServer(unpack({{tryingtoleave = true}}))
+        ReplicatedStorage:WaitForChild("Remotes")
+            :WaitForChild("ClickedButton")
+            :FireServer(unpack({ { tryingtoleave = true } }))
         task.wait(0.2)
         Script.Temp.PauseAntiFling = false
     end
@@ -1367,7 +1503,9 @@ GreenLightRedLightGroup:AddDropdown("RLGLInjuredPlayer", {
     Values = {},
     AllowNull = true,
     Callback = function(val)
-        if not val then return end
+        if not val then
+            return
+        end
         local injured = Script.Functions.GetAllInjuredPlayers()
         local selected = nil
         for _, entry in ipairs(injured) do
@@ -1397,11 +1535,13 @@ GreenLightRedLightGroup:AddDropdown("RLGLInjuredPlayer", {
             task.wait(0.2)
             Script.Functions.WinRLGL()
             task.wait(0.2)
-            ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("ClickedButton"):FireServer(unpack({{tryingtoleave = true}}))
+            ReplicatedStorage:WaitForChild("Remotes")
+                :WaitForChild("ClickedButton")
+                :FireServer(unpack({ { tryingtoleave = true } }))
             task.wait(0.2)
             Script.Temp.PauseAntiFling = false
         end
-    end
+    end,
 })
 
 DalgonaGameGroup:AddButton("Complete Dalgona Game", function()
@@ -1414,12 +1554,15 @@ DalgonaGameGroup:AddButton("Complete Dalgona Game", function()
     Script.Functions.Alert("Completed Dalgona Game!", 2)
     Script.Functions.RestartRemotesScript()
     Script.Functions.Alert("Camera should be automatically fixed!", 3)
-    table.insert(Script.Tasks, task.spawn(function()
-        repeat
-            task.wait(1)
-            Script.Functions.CheckPlayersVisibility()
-        until not Script.Functions.GetDalgonaRemote()
-    end))
+    table.insert(
+        Script.Tasks,
+        task.spawn(function()
+            repeat
+                task.wait(1)
+                Script.Functions.CheckPlayersVisibility()
+            until not Script.Functions.GetDalgonaRemote()
+        end)
+    )
 end)
 
 DalgonaGameGroup:AddToggle("ImmuneDalgonaGame", {
@@ -1437,7 +1580,9 @@ DalgonaGameGroup:AddToggle("ImmuneDalgonaGame", {
                 Toggles.ImmuneDalgonaGame:SetValue(false)
                 return
             end
-            if Script.GameState ~= "Dalgona" then return end
+            if Script.GameState ~= "Dalgona" then
+                return
+            end
             Script.HookMethods.ImmuneDalgona = function(self, method, args)
                 if self == "DALGONATEMPREMPTE" and method == "FireServer" then
                     if args[1] ~= nil and type(args[1]) == "table" and args[1].CrackAmount ~= nil then
@@ -1453,7 +1598,7 @@ DalgonaGameGroup:AddToggle("ImmuneDalgonaGame", {
             end)
             Script.Functions.Alert("Your cookie will not break from now on!", 3)
         end
-    end
+    end,
 })
 
 TugOfWarGroup:AddToggle("AutoPull", {
@@ -1468,12 +1613,14 @@ TugOfWarGroup:AddToggle("AutoPull", {
             Script.Connections.TugOfWarConnDestroyer:Disconnect()
             Script.Connections.TugOfWarConnDestroyer = nil
         end
-        if not Value or Script.GameState ~= "TugOfWar" then return end
+        if not Value or Script.GameState ~= "TugOfWar" then
+            return
+        end
         Script.Tasks.AutoPullTask = task.spawn(function()
             repeat
-                ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("TemporaryReachedBindable"):FireServer(
-                    unpack({{GameQTE = true}})
-                )
+                ReplicatedStorage:WaitForChild("Remotes")
+                    :WaitForChild("TemporaryReachedBindable")
+                    :FireServer(unpack({ { GameQTE = true } }))
                 task.wait(Options.AutoPullDelay.Value)
             until not Toggles.AutoPull.Value or Library.Unloaded
             Script.Tasks.AutoPullTask = nil
@@ -1481,7 +1628,7 @@ TugOfWarGroup:AddToggle("AutoPull", {
         Script.Connections.TugOfWarConnDestroyer = Script.Functions.OnceOnGameChanged(function()
             Toggles.AutoPull.Callback(false)
         end)
-    end
+    end,
 })
 
 TugOfWarGroup:AddSlider("AutoPullDelay", {
@@ -1489,11 +1636,13 @@ TugOfWarGroup:AddSlider("AutoPullDelay", {
     Default = 0.2,
     Min = 0,
     Max = 1.5,
-    Rounding = 2
+    Rounding = 2,
 })
 
 function Script.Functions.WinJumpRope()
-    if not lplr.Character then return end
+    if not lplr.Character then
+        return
+    end
     Script.Functions.DisableAntiFling()
     lplr.Character:PivotTo(CFrame.new(Vector3.new(732.4, 197.14, 931.1644)))
 end
@@ -1508,7 +1657,11 @@ JumpRopeGroup:AddToggle("AutoSurviveJumpRope", {
         end
         if enabled then
             local char = lplr.Character
-            if char and workspace:FindFirstChild("JumpRope") and workspace.JumpRope:FindFirstChild("FallColllisionYClient") then
+            if
+                char
+                and workspace:FindFirstChild("JumpRope")
+                and workspace.JumpRope:FindFirstChild("FallColllisionYClient")
+            then
                 local root = char:FindFirstChild("HumanoidRootPart")
                 local fallY = workspace.JumpRope.FallColllisionYClient.Position.y
                 pcall(function()
@@ -1524,7 +1677,7 @@ JumpRopeGroup:AddToggle("AutoSurviveJumpRope", {
                 Toggles.AutoSurviveJumpRope:SetValue(false)
             end
         end
-    end
+    end,
 })
 
 JumpRopeGroup:AddButton("Destroy Fall Detection [beta]", function()
@@ -1550,7 +1703,9 @@ JumpRopeGroup:AddButton("Complete Jump Rope Game", function()
         return
     end
     Script.Functions.WinJumpRope()
-    if not lplr.Character then return end
+    if not lplr.Character then
+        return
+    end
     local a = lplr.Character:FindFirstChild("SafeJumpRope") or Instance.new("Folder")
     a.Name = "SafeJumpRope"
     a.Parent = lplr.Character
@@ -1581,7 +1736,7 @@ JumpRopeGroup:AddToggle("AutoPerfectJumpRope", {
                 end
             end)
         end
-    end
+    end,
 })
 
 MingleGroup:AddToggle("AutoMingleQTE", {
@@ -1596,7 +1751,9 @@ MingleGroup:AddToggle("AutoMingleQTE", {
             Script.Connections.AutoMingleConnDestroyer:Disconnect()
             Script.Connections.AutoMingleConnDestroyer = nil
         end
-        if not Value or Script.GameState ~= "Mingle" then return end
+        if not Value or Script.GameState ~= "Mingle" then
+            return
+        end
         Script.Tasks.AutoMingleQTEThread = task.spawn(function()
             local RemoteForQTE
             while Toggles.AutoMingleQTE.Value and not Library.Unloaded do
@@ -1620,11 +1777,13 @@ MingleGroup:AddToggle("AutoMingleQTE", {
         Script.Connections.AutoMingleConnDestroyer = Script.Functions.OnceOnGameChanged(function()
             Toggles.AutoMingleQTE.Callback(false)
         end)
-    end
+    end,
 })
 
 function Script.Functions.WinGlassBridge()
-    if not lplr.Character then return end
+    if not lplr.Character then
+        return
+    end
     Script.Functions.DisableAntiFling()
     lplr.Character:PivotTo(CFrame.new(Vector3.new(-203.9, 520.7, -1534.3485) + Vector3.new(0, 5, 0)))
 end
@@ -1641,8 +1800,11 @@ GlassBridgeGroup:AddToggle("RevealGlassBridge", {
     Text = "Reveal Glass Bridge",
     Default = false,
     Callback = function(Value)
-        if Script.GameState ~= "GlassBridge" then return end
-        local glassHolder = workspace:FindFirstChild("GlassBridge") and workspace.GlassBridge:FindFirstChild("GlassHolder")
+        if Script.GameState ~= "GlassBridge" then
+            return
+        end
+        local glassHolder = workspace:FindFirstChild("GlassBridge")
+            and workspace.GlassBridge:FindFirstChild("GlassHolder")
         if not glassHolder then
             Script.Functions.Alert("GlassHolder not found in workspace.GlassBridge")
             return
@@ -1657,7 +1819,9 @@ GlassBridgeGroup:AddToggle("RevealGlassBridge", {
                         end
                     end
 
-                    if not Value then continue end
+                    if not Value then
+                        continue
+                    end
 
                     local isKillBreaking = primaryPart:GetAttribute("ActuallyKilling") ~= nil
                     local isDelayedBreaking = primaryPart:GetAttribute("DelayedBreaking") ~= nil
@@ -1684,14 +1848,20 @@ GlassBridgeGroup:AddToggle("RevealGlassBridge", {
         if Value then
             Script.Functions.Alert("[Voidware]: Safe tiles are green, breakable tiles are red!", 10)
         end
-    end
+    end,
 })
 
 function Script.Functions.GetHider()
     for _, plr in pairs(Players:GetPlayers()) do
-        if plr == lplr then continue end
-        if not plr.Character then continue end
-        if not plr:GetAttribute("IsHider") then continue end
+        if plr == lplr then
+            continue
+        end
+        if not plr.Character then
+            continue
+        end
+        if not plr:GetAttribute("IsHider") then
+            continue
+        end
         if plr.Character:FindFirstChild("Humanoid") and plr.Character.Humanoid.Health > 0 then
             return plr.Character
         end
@@ -1709,7 +1879,9 @@ HideAndSeekGroup:AddToggle("TeleportToHider", {
                     Toggles.TeleportToHider:SetValue(false)
                 end
             end)
-            if not lplr.Character then return end
+            if not lplr.Character then
+                return
+            end
             if Script.GameState ~= "HideAndSeek" then
                 Script.Functions.Alert("Game not running!")
                 return
@@ -1721,12 +1893,12 @@ HideAndSeekGroup:AddToggle("TeleportToHider", {
             end
             lplr.Character:PivotTo(hider:GetPrimaryPartCFrame())
         end
-    end
+    end,
 }):AddKeyPicker("TTH", {
     Mode = "Toggle",
     Default = "P",
     Text = "Teleport To Hider",
-    SyncToggleState = true
+    SyncToggleState = true,
 })
 HideAndSeekGroup:AddButton("Teleport to Safe Hiding Spot", function()
     if Script.GameState ~= "HideAndSeek" then
@@ -1745,12 +1917,18 @@ RebelGroup:AddToggle("ExpandGuardHitbox", {
             Script.Connections.GuardHitboxConnection = nil
         end
         local live = workspace:FindFirstChild("Live")
-        if not live then return end
+        if not live then
+            return
+        end
         if Value then
             Script.Connections.GuardHitboxConnection = live.ChildAdded:Connect(function(model)
-                if not isGuard(model) then return end
+                if not isGuard(model) then
+                    return
+                end
                 local head = model:WaitForChild("Head", 5)
-                if not head or not head:IsA("BasePart") then return end
+                if not head or not head:IsA("BasePart") then
+                    return
+                end
                 if model and model.Parent and head and head.Parent then
                     head.Size = Vector3.new(4, 4, 4)
                     head.CanCollide = false
@@ -1768,10 +1946,16 @@ RebelGroup:AddToggle("ExpandGuardHitbox", {
                 end)
             end)
             for _, model in pairs(live:GetChildren()) do
-                if not isGuard(model) then return end
-                if model:FindFirstChild("Dead") then continue end
+                if not isGuard(model) then
+                    return
+                end
+                if model:FindFirstChild("Dead") then
+                    continue
+                end
                 local head = model:WaitForChild("Head", 5)
-                if not head or not head:IsA("BasePart") then return end
+                if not head or not head:IsA("BasePart") then
+                    return
+                end
                 if model and model.Parent and head and head.Parent then
                     head.Size = Vector3.new(4, 4, 4)
                     head.CanCollide = false
@@ -1779,23 +1963,29 @@ RebelGroup:AddToggle("ExpandGuardHitbox", {
             end
         else
             for _, model in ipairs(live:GetChildren()) do
-                if not isGuard(model) then return end
+                if not isGuard(model) then
+                    return
+                end
                 local head = model:WaitForChild("Head", 5)
-                if not head or not head:IsA("BasePart") then return end
+                if not head or not head:IsA("BasePart") then
+                    return
+                end
                 if model and model.Parent and head and head.Parent then
                     head.Size = Vector3.new(1, 1, 1)
                 end
             end
         end
-    end
+    end,
 })
 
 RebelGroup:AddButton("Bring All Guards", function()
-    if not Script.Functions.GetRootPart() then return end
+    if not Script.Functions.GetRootPart() then
+        return
+    end
     local myPos = Script.Functions.GetRootPart().Position
     local Live = workspace:WaitForChild("Live")
     for _, guard in pairs(Live:GetChildren()) do
-        if isGuard(guard) and guard:FindFirstChild("HumanoidRootPart")then
+        if isGuard(guard) and guard:FindFirstChild("HumanoidRootPart") then
             local guardRoot = guard.HumanoidRootPart
             local lookCFrame = CFrame.new(guardRoot.Position, myPos)
             guardRoot.CFrame = lookCFrame
@@ -1810,22 +2000,32 @@ RebelGroup:AddToggle("GunMods", {
         Script.Temp.originalDamageValues = Script.Temp.originalDamageValues or {}
         Script.Temp.originalGunStats = Script.Temp.originalGunStats or {}
         local Guns = ReplicatedStorage:FindFirstChild("Weapons") and ReplicatedStorage.Weapons:FindFirstChild("Guns")
-        if not Guns then return end
+        if not Guns then
+            return
+        end
         -- local GunDamageValues = Script.Functions.SafeRequire(ReplicatedStorage.Modules.GunDamageValues)
         for _, gun in pairs(Guns:GetChildren()) do
             if enable then
                 if not Script.Temp.originalGunStats[gun.Name] then
                     Script.Temp.originalGunStats[gun.Name] = {}
-                    for _, stat in ipairs({"Spread", "FireRateCD", "MaxBullets", "ReloadingSpeed"}) do
+                    for _, stat in ipairs({ "Spread", "FireRateCD", "MaxBullets", "ReloadingSpeed" }) do
                         if gun:FindFirstChild(stat) then
                             Script.Temp.originalGunStats[gun.Name][stat] = gun[stat].Value
                         end
                     end
                 end
-                if gun:FindFirstChild("Spread") then gun.Spread.Value = 0 end
-                if gun:FindFirstChild("FireRateCD") then gun.FireRateCD.Value = 0.05 end
-                if gun:FindFirstChild("MaxBullets") then gun.MaxBullets.Value = 9999 end
-                if gun:FindFirstChild("ReloadingSpeed") then gun.ReloadingSpeed.Value = 0.02 end
+                if gun:FindFirstChild("Spread") then
+                    gun.Spread.Value = 0
+                end
+                if gun:FindFirstChild("FireRateCD") then
+                    gun.FireRateCD.Value = 0.05
+                end
+                if gun:FindFirstChild("MaxBullets") then
+                    gun.MaxBullets.Value = 9999
+                end
+                if gun:FindFirstChild("ReloadingSpeed") then
+                    gun.ReloadingSpeed.Value = 0.02
+                end
 
                 -- if GunDamageValues and GunDamageValues[gun.Name] then
                 --     if not Script.Temp.originalDamageValues[gun.Name] then
@@ -1853,26 +2053,40 @@ RebelGroup:AddToggle("GunMods", {
                 -- end
             end
         end
-    end
+    end,
 })
 
 function Script.Functions.GetEmotesMeta()
     local Animations = ReplicatedStorage:WaitForChild("Animations", 10)
-    if not Animations then Script.Functions.Alert("[GetEmotesMeta]: Animations folder timeout!"); return end
+    if not Animations then
+        Script.Functions.Alert("[GetEmotesMeta]: Animations folder timeout!")
+        return
+    end
     local Emotes = Animations:WaitForChild("Emotes", 10)
-    if not Emotes then Script.Functions.Alert("[GetEmotesMeta]: Emotes folder timeout!"); return end
+    if not Emotes then
+        Script.Functions.Alert("[GetEmotesMeta]: Emotes folder timeout!")
+        return
+    end
     local res = {}
     for i, v in pairs(Emotes:GetChildren()) do
-        if v.ClassName ~= "Animation" then continue end
-        if not v.AnimationId then continue end
+        if v.ClassName ~= "Animation" then
+            continue
+        end
+        if not v.AnimationId then
+            continue
+        end
 
         if res[v.Name] then
-            Script.Functions.Alert("[GetEmotesMeta | Resolver]: The emote "..tostring(v.Name).." is duplicated! Overwriting past data...")
+            Script.Functions.Alert(
+                "[GetEmotesMeta | Resolver]: The emote "
+                    .. tostring(v.Name)
+                    .. " is duplicated! Overwriting past data..."
+            )
         end
 
         res[v.Name] = {
             anim = v.AnimationId,
-            object = v
+            object = v,
         }
     end
     Script.Temp.EmoteList = res
@@ -1880,21 +2094,29 @@ function Script.Functions.GetEmotesMeta()
 end
 
 function Script.Functions.RefreshEmoteList()
-    local w = function(str) Script.Functions.Alert("[RefreshEmoteList]: "..tostring(str)) end
+    local w = function(str)
+        Script.Functions.Alert("[RefreshEmoteList]: " .. tostring(str))
+    end
     local res = Script.Functions.GetEmotesMeta()
-    if not res then w("res not found!"); return end
-    if not Options.EmotesList then w("Emotes List Option not found!"); return end
+    if not res then
+        w("res not found!")
+        return
+    end
+    if not Options.EmotesList then
+        w("Emotes List Option not found!")
+        return
+    end
     local tab = {}
-    for i,v in pairs(res) do
+    for i, v in pairs(res) do
         table.insert(tab, tostring(i))
     end
     Options.EmotesList:SetValues(tab)
 end
 
 EmotesGroup:AddDropdown("EmotesList", {
-    Text = 'Emotes List',
+    Text = "Emotes List",
     Values = {},
-    AllowNull = true
+    AllowNull = true,
 })
 
 EmotesGroup:AddButton("Play Emote", function()
@@ -1912,8 +2134,14 @@ EmotesGroup:AddButton("Play Emote", function()
                 return
             end
 
-            if Script.Temp.EmoteTrack and typeof(Script.Temp.EmoteTrack) == "Instance" and Script.Temp.EmoteTrack:IsA("AnimationTrack") then
-                pcall(function() Script.Temp.EmoteTrack:Stop() end)
+            if
+                Script.Temp.EmoteTrack
+                and typeof(Script.Temp.EmoteTrack) == "Instance"
+                and Script.Temp.EmoteTrack:IsA("AnimationTrack")
+            then
+                pcall(function()
+                    Script.Temp.EmoteTrack:Stop()
+                end)
                 Script.Temp.EmoteTrack = nil
             end
 
@@ -1949,8 +2177,14 @@ EmotesGroup:AddButton("Play Emote", function()
 end)
 
 EmotesGroup:AddButton("Stop Emoting", function()
-    if Script.Temp.EmoteTrack and typeof(Script.Temp.EmoteTrack) == "Instance" and Script.Temp.EmoteTrack:IsA("AnimationTrack") then
-        pcall(function() Script.Temp.EmoteTrack:Stop() end)
+    if
+        Script.Temp.EmoteTrack
+        and typeof(Script.Temp.EmoteTrack) == "Instance"
+        and Script.Temp.EmoteTrack:IsA("AnimationTrack")
+    then
+        pcall(function()
+            Script.Temp.EmoteTrack:Stop()
+        end)
         Script.Temp.EmoteTrack = nil
     end
 end)
@@ -1964,13 +2198,19 @@ MiscGroup:AddToggle("AntiRagdoll", {
             Script.Tasks.RagdollBlockConn = nil
         end
         local Character = lplr.Character
-        if not Character then return end
+        if not Character then
+            return
+        end
         local Humanoid = Character:FindFirstChild("Humanoid")
         local HumanoidRootPart = Character:FindFirstChild("HumanoidRootPart")
-        if not (Humanoid and HumanoidRootPart) then return end
+        if not (Humanoid and HumanoidRootPart) then
+            return
+        end
         for _, child in ipairs(Character:GetChildren()) do
             if child.Name == "Ragdoll" then
-                pcall(function() child:Destroy() end)
+                pcall(function()
+                    child:Destroy()
+                end)
             end
         end
         pcall(function()
@@ -1980,10 +2220,14 @@ MiscGroup:AddToggle("AntiRagdoll", {
             Humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
             Humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, true)
         end)
-        if not Value then return end
+        if not Value then
+            return
+        end
         Script.Tasks.RagdollBlockConn = Character.ChildAdded:Connect(function(child)
             if child.Name == "Ragdoll" then
-                pcall(function() child:Destroy() end)
+                pcall(function()
+                    child:Destroy()
+                end)
                 pcall(function()
                     Humanoid.PlatformStand = false
                     Humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
@@ -1993,7 +2237,7 @@ MiscGroup:AddToggle("AntiRagdoll", {
                 end)
             end
         end)
-    end
+    end,
 })
 
 MiscGroup:AddButton("Fix Camera", function()
@@ -2038,47 +2282,47 @@ MiscGroup:AddToggle("TeleportToSafePlace", {
             Script.Functions.Alert("Teleported back from Safe Place", 3)
             Script.Functions.TeleportBackFromSafe()
         end
-    end
+    end,
 }):AddKeyPicker("TTSPKey", {
     Mode = "Toggle",
     Default = "L",
     Text = "Teleport To Safe Place",
-    SyncToggleState = true
+    SyncToggleState = true,
 })
 
 MiscGroup:AddButton("Fix Players Visibility", Script.Functions.CheckPlayersVisibility)
 
 PlayerGroup:AddSlider("WonBoostSlider", {
     Text = "Won boost(idk it works or not)",
-    Default = lplr.Boosts['Won Boost'].Value,
+    Default = lplr.Boosts["Won Boost"].Value,
     Min = 0,
     Max = 3,
     Rounding = 0,
     Callback = function(val)
-        lplr.Boosts['Won Boost'].Value = val
-    end
+        lplr.Boosts["Won Boost"].Value = val
+    end,
 })
 
 PlayerGroup:AddSlider("StrengthBoostSlider", {
     Text = "Strength boost(idk it works or not)",
-    Default = lplr.Boosts['Damage Boost'].Value,
+    Default = lplr.Boosts["Damage Boost"].Value,
     Min = 0,
     Max = 5,
     Rounding = 0,
     Callback = function(val)
-        lplr.Boosts['Damage Boost'].Value = val
-    end
+        lplr.Boosts["Damage Boost"].Value = val
+    end,
 })
 
 PlayerGroup:AddSlider("SpeedBoostSlider", {
     Text = "Speed boost",
-    Default = lplr.Boosts['Faster Sprint'].Value,
+    Default = lplr.Boosts["Faster Sprint"].Value,
     Min = 0,
     Max = 5,
     Rounding = 0,
     Callback = function(val)
-        lplr.Boosts['Faster Sprint'].Value = val
-    end
+        lplr.Boosts["Faster Sprint"].Value = val
+    end,
 })
 
 PlayerGroup:AddSlider("SpeedSlider", {
@@ -2088,11 +2332,17 @@ PlayerGroup:AddSlider("SpeedSlider", {
     Max = 100,
     Rounding = 1,
     Callback = function(val)
-        if not Toggles.SpeedToggle.Value then return end
-        if not lplr.Character then return end
-        if not lplr.Character:FindFirstChild("Humanoid") then return end
+        if not Toggles.SpeedToggle.Value then
+            return
+        end
+        if not lplr.Character then
+            return
+        end
+        if not lplr.Character:FindFirstChild("Humanoid") then
+            return
+        end
         lplr.Character.Humanoid.WalkSpeed = Options.SpeedSlider.Value
-    end
+    end,
 })
 
 PlayerGroup:AddToggle("SpeedToggle", {
@@ -2112,9 +2362,15 @@ PlayerGroup:AddToggle("SpeedToggle", {
             Script.Tasks.SpeedToggleTask = task.spawn(function()
                 repeat
                     task.wait(0.5)
-                    if not Toggles.SpeedToggle.Value then return end
-                    if not lplr.Character then return end
-                    if not lplr.Character:FindFirstChild("Humanoid") then return end
+                    if not Toggles.SpeedToggle.Value then
+                        return
+                    end
+                    if not lplr.Character then
+                        return
+                    end
+                    if not lplr.Character:FindFirstChild("Humanoid") then
+                        return
+                    end
                     if Value then
                         lplr.Character.Humanoid.WalkSpeed = Options.SpeedSlider.Value
                     end
@@ -2128,12 +2384,12 @@ PlayerGroup:AddToggle("SpeedToggle", {
                 Script.Temp.OldSpeed = nil
             end
         end
-    end
+    end,
 }):AddKeyPicker("SpeedKey", {
     Mode = "Toggle",
     Default = "C",
     Text = "Speed",
-    SyncToggleState = true
+    SyncToggleState = true,
 })
 
 PlayerGroup:AddToggle("Noclip", {
@@ -2172,12 +2428,12 @@ PlayerGroup:AddToggle("Noclip", {
                 Script.Temp.NoclipParts = {}
             end
         end
-    end
+    end,
 }):AddKeyPicker("NoclipKey", {
     Mode = "Toggle",
     Default = "N",
     Text = "Noclip",
-    SyncToggleState = true
+    SyncToggleState = true,
 })
 
 PlayerGroup:AddToggle("InfiniteJump", {
@@ -2187,13 +2443,19 @@ PlayerGroup:AddToggle("InfiniteJump", {
         if Script.Connections.InfiniteJumpConnect then
             Script.Connections.InfiniteJumpConnect:Disconnect()
         end
-        if not Value then return end
+        if not Value then
+            return
+        end
         Script.Connections.InfiniteJumpConnect = UserInputService.JumpRequest:Connect(function()
-            if not lplr.Character then return end
-            if not lplr.Character:FindFirstChild("Humanoid") then return end
+            if not lplr.Character then
+                return
+            end
+            if not lplr.Character:FindFirstChild("Humanoid") then
+                return
+            end
             lplr.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
         end)
-    end
+    end,
 })
 
 SecurityGroup:AddToggle("Fling Character Hook", {
@@ -2203,15 +2465,22 @@ SecurityGroup:AddToggle("Fling Character Hook", {
         if Value then
             local function PatchFlingAnticheat()
                 local char = lplr.Character
-                if not char then return end
+                if not char then
+                    return
+                end
                 local root = Script.Functions.GetRootPart()
-                if not root then return end
+                if not root then
+                    return
+                end
 
-                local anticheatStates = { "Stun", "Anchor", "RotateDisabled", "CantRun", "InCutscene", "DisableHeadLookAt" }
+                local anticheatStates =
+                    { "Stun", "Anchor", "RotateDisabled", "CantRun", "InCutscene", "DisableHeadLookAt" }
                 if not Script.Temp.FlingAnticheatChildConn then
                     Script.Temp.FlingAnticheatChildConn = char.ChildAdded:Connect(function(child)
                         if table.find(anticheatStates, child.Name) then
-                            task.delay(0.01, function() child:Destroy() end)
+                            task.delay(0.01, function()
+                                child:Destroy()
+                            end)
                         end
                     end)
                 end
@@ -2261,7 +2530,7 @@ SecurityGroup:AddToggle("Fling Character Hook", {
             end
             Script.Functions.Alert("Anticheat Patch Disabled!", 3)
         end
-    end
+    end,
 })
 
 SecurityGroup:AddToggle("Block Anticheat Remote", {
@@ -2272,7 +2541,9 @@ SecurityGroup:AddToggle("Block Anticheat Remote", {
             return
         end
         Script.HookMethods.Anticheat = nil
-        if not call then return end
+        if not call then
+            return
+        end
         Script.HookMethods.Anticheat = function(self, method, args)
             if self == "TemporaryReachedBindable" and method == "FireServer" then
                 if type(args[1]) == "table" and (args[1].FallingPlayer ~= nil or args[1].funnydeath ~= nil) then
@@ -2287,7 +2558,7 @@ SecurityGroup:AddToggle("Block Anticheat Remote", {
             end
             return args
         end
-    end
+    end,
 })
 
 SecurityGroup:AddToggle("AntiAfk", {
@@ -2299,13 +2570,15 @@ SecurityGroup:AddToggle("AntiAfk", {
                 Script.Connections.AntiAfkConnection:Disconnect()
             end)
         end
-        if not Value then return end
+        if not Value then
+            return
+        end
         Script.Connections.AntiAfkConnection = lplr.Idled:Connect(function()
             VirtualUser:Button2Down(Vector2.new(0, 0), camera.CFrame)
             wait(1)
             VirtualUser:Button2Up(Vector2.new(0, 0), camera.CFrame)
         end)
-    end
+    end,
 })
 
 SecurityGroup:AddToggle("StaffDetector", {
@@ -2318,7 +2591,7 @@ SecurityGroup:AddToggle("StaffDetector", {
             local staffRoles = {
                 [120] = "moderator",
                 [254] = "dev",
-                [255] = "owner"
+                [255] = "owner",
             }
             Script.Temp.DetectedStaff = Script.Temp.DetectedStaff or {}
             local function checkPlayerStaff(player)
@@ -2327,8 +2600,11 @@ SecurityGroup:AddToggle("StaffDetector", {
                 end)
                 if success and rank and rank >= STAFF_MIN_RANK then
                     local roleName = staffRoles[rank] or ("rank " .. tostring(rank))
-                    Script.Functions.Alert("[StaffDetector] Staff detected: " .. player.Name .. " (" .. roleName .. ")", 10)
-                    Script.Temp.DetectedStaff[player.UserId] = {Name = player.Name, Role = roleName}
+                    Script.Functions.Alert(
+                        "[StaffDetector] Staff detected: " .. player.Name .. " (" .. roleName .. ")",
+                        10
+                    )
+                    Script.Temp.DetectedStaff[player.UserId] = { Name = player.Name, Role = roleName }
                     return true
                 end
                 return false
@@ -2348,21 +2624,26 @@ SecurityGroup:AddToggle("StaffDetector", {
             Script.Temp.StaffDetectorConnections.PlayerRemoving = Players.PlayerRemoving:Connect(function(player)
                 local staffInfo = Script.Temp.DetectedStaff and Script.Temp.DetectedStaff[player.UserId]
                 if staffInfo then
-                    Script.Functions.Alert("[StaffDetector] Staff left: " .. staffInfo.Name .. " (" .. staffInfo.Role .. ")", 10)
+                    Script.Functions.Alert(
+                        "[StaffDetector] Staff left: " .. staffInfo.Name .. " (" .. staffInfo.Role .. ")",
+                        10
+                    )
                     Script.Temp.DetectedStaff[player.UserId] = nil
                 end
             end)
         else
             if Script.Temp.StaffDetectorConnections then
                 for _, conn in pairs(Script.Temp.StaffDetectorConnections) do
-                    pcall(function() conn:Disconnect() end)
+                    pcall(function()
+                        conn:Disconnect()
+                    end)
                 end
                 Script.Temp.StaffDetectorConnections = nil
             end
             Script.Temp.DetectedStaff = nil
             Script.Functions.Alert("[StaffDetector] Staff detection disabled.", 3)
         end
-    end
+    end,
 })
 
 PerformanceGroup:AddToggle("LowGFX", {
@@ -2375,13 +2656,13 @@ PerformanceGroup:AddToggle("LowGFX", {
         end
         if Value then
             Script.Temp.LowGFX_Originals = Script.Temp.LowGFX_Originals or {}
-            local Terrain = workspace:FindFirstChildOfClass('Terrain')
+            local Terrain = workspace:FindFirstChildOfClass("Terrain")
             if Terrain then
                 Script.Temp.LowGFX_Originals.Terrain = {
                     WaterWaveSize = Terrain.WaterWaveSize,
                     WaterWaveSpeed = Terrain.WaterWaveSpeed,
                     WaterReflectance = Terrain.WaterReflectance,
-                    WaterTransparency = Terrain.WaterTransparency
+                    WaterTransparency = Terrain.WaterTransparency,
                 }
                 Terrain.WaterWaveSize = 0
                 Terrain.WaterWaveSpeed = 0
@@ -2391,7 +2672,7 @@ PerformanceGroup:AddToggle("LowGFX", {
             Script.Temp.LowGFX_Originals.Lighting = {
                 GlobalShadows = Lighting.GlobalShadows,
                 FogEnd = Lighting.FogEnd,
-                FogStart = Lighting.FogStart
+                FogStart = Lighting.FogStart,
             }
             Lighting.GlobalShadows = false
             Lighting.FogEnd = 9e9
@@ -2401,7 +2682,7 @@ PerformanceGroup:AddToggle("LowGFX", {
                 settings().Rendering.QualityLevel = 1
             end)
             Script.Temp.LowGFX_Originals.BaseParts = {}
-            for i,v in pairs(game:GetDescendants()) do
+            for i, v in pairs(game:GetDescendants()) do
                 if v:IsA("BasePart") then
                     Script.Temp.LowGFX_Originals.BaseParts[v] = {
                         Material = v.Material,
@@ -2411,7 +2692,7 @@ PerformanceGroup:AddToggle("LowGFX", {
                         FrontSurface = v.FrontSurface,
                         LeftSurface = v.LeftSurface,
                         RightSurface = v.RightSurface,
-                        TopSurface = v.TopSurface
+                        TopSurface = v.TopSurface,
                     }
                     v.Material = "Plastic"
                     v.Reflectance = 0
@@ -2430,7 +2711,7 @@ PerformanceGroup:AddToggle("LowGFX", {
                 end
             end
             Script.Temp.LowGFX_Originals.PostEffects = {}
-            for i,v in pairs(Lighting:GetDescendants()) do
+            for i, v in pairs(Lighting:GetDescendants()) do
                 if v:IsA("PostEffect") then
                     Script.Temp.LowGFX_Originals.PostEffects[v] = v.Enabled
                     v.Enabled = false
@@ -2438,14 +2719,20 @@ PerformanceGroup:AddToggle("LowGFX", {
             end
             Script.Connections.LowGFX_DescendantConn = workspace.DescendantAdded:Connect(function(child)
                 task.spawn(function()
-                    if child:IsA('ForceField') or child:IsA('Sparkles') or child:IsA('Smoke') or child:IsA('Fire') or child:IsA('Beam') then
+                    if
+                        child:IsA("ForceField")
+                        or child:IsA("Sparkles")
+                        or child:IsA("Smoke")
+                        or child:IsA("Fire")
+                        or child:IsA("Beam")
+                    then
                         RunService.Heartbeat:Wait()
                         child:Destroy()
                     end
                 end)
             end)
         else
-            local Terrain = workspace:FindFirstChildOfClass('Terrain')
+            local Terrain = workspace:FindFirstChildOfClass("Terrain")
             if Terrain and Script.Temp.LowGFX_Originals and Script.Temp.LowGFX_Originals.Terrain then
                 Terrain.WaterWaveSize = Script.Temp.LowGFX_Originals.Terrain.WaterWaveSize
                 Terrain.WaterWaveSpeed = Script.Temp.LowGFX_Originals.Terrain.WaterWaveSpeed
@@ -2494,23 +2781,27 @@ PerformanceGroup:AddToggle("LowGFX", {
             end
             Script.Temp.LowGFX_Originals = nil
         end
-    end
+    end,
 })
 
 PerformanceGroup:AddToggle("DisableEffects", {
     Text = "Disable Effects",
     Default = false,
     Callback = function(Value)
-            if Script.Temp.DisableEffectsConnection then
-                pcall(function()
-                    Script.Temp.DisableEffectsConnection:Disconnect()
-                end)
-                Script.Temp.DisableEffectsConnection = nil
-            end
-        if not Value then return end
+        if Script.Temp.DisableEffectsConnection then
+            pcall(function()
+                Script.Temp.DisableEffectsConnection:Disconnect()
+            end)
+            Script.Temp.DisableEffectsConnection = nil
+        end
+        if not Value then
+            return
+        end
         local Effects = workspace:WaitForChild("Effects", 15)
-        if not Effects then return end
-        for _,v in pairs(Effects:GetDescendants()) do
+        if not Effects then
+            return
+        end
+        for _, v in pairs(Effects:GetDescendants()) do
             if not string.find(v.Name, "DroppedKey") then
                 v:Destroy()
             end
@@ -2522,7 +2813,7 @@ PerformanceGroup:AddToggle("DisableEffects", {
                 end
             end)
         end)
-    end
+    end,
 })
 
 local States = {
@@ -2586,25 +2877,35 @@ local States = {
     end,
     LightsOut = Script.Functions.TeleportSafe,
     Dalgona = function()
-        table.insert(Script.Tasks, task.spawn(function()
-            repeat task.wait() until Script.Functions.GetDalgonaRemote() or not Toggles.InkGameAutowin.Value or Library.Unloaded
-            if not Toggles.InkGameAutowin.Value then return end
-            task.wait(3)
-            Script.Functions.CompleteDalgonaGame()
-            Script.Functions.BypassDalgonaGame()()
-            Script.Functions.RestartRemotesScript()
-            table.insert(Script.Tasks, task.spawn(function()
+        table.insert(
+            Script.Tasks,
+            task.spawn(function()
                 repeat
-                    task.wait(1)
-                    Script.Functions.CheckPlayersVisibility()
-                until not Script.Functions.GetDalgonaRemote()
-            end))
-            task.delay(3, function()
+                    task.wait()
+                until Script.Functions.GetDalgonaRemote() or not Toggles.InkGameAutowin.Value or Library.Unloaded
+                if not Toggles.InkGameAutowin.Value then
+                    return
+                end
+                task.wait(3)
                 Script.Functions.CompleteDalgonaGame()
                 Script.Functions.BypassDalgonaGame()()
                 Script.Functions.RestartRemotesScript()
+                table.insert(
+                    Script.Tasks,
+                    task.spawn(function()
+                        repeat
+                            task.wait(1)
+                            Script.Functions.CheckPlayersVisibility()
+                        until not Script.Functions.GetDalgonaRemote()
+                    end)
+                )
+                task.delay(3, function()
+                    Script.Functions.CompleteDalgonaGame()
+                    Script.Functions.BypassDalgonaGame()()
+                    Script.Functions.RestartRemotesScript()
+                end)
             end)
-        end))
+        )
 
         return function()
             Script.Functions.CheckPlayersVisibility()
@@ -2622,7 +2923,7 @@ local States = {
         return function()
             call = false
         end
-    end
+    end,
 }
 
 local lastCleanupFunction = function() end
@@ -2636,7 +2937,7 @@ function Script.Functions.HandleAutowin()
     end
 
     if States[Script.GameState] then
-        Script.Functions.Alert("[Autowin]: Running on "..tostring(Script.GameState))
+        Script.Functions.Alert("[Autowin]: Running on " .. tostring(Script.GameState))
         lastCleanupFunction = States[Script.GameState]()
     else
         Script.Functions.Alert("[Autowin]: Waiting for the next game...")
@@ -2653,7 +2954,7 @@ FunGroup:AddToggle("InkGameAutowin", {
         else
             Script.Functions.Alert("Autowin disabled!", 3)
         end
-    end
+    end,
 })
 
 FunGroup:AddToggle("FlingAuraToggle", {
@@ -2724,7 +3025,7 @@ FunGroup:AddToggle("FlingAuraToggle", {
             Script.Functions.Alert("Fling Aura Disabled", 3)
             stopFlingAura()
         end
-    end
+    end,
 })
 
 FunGroup:AddToggle("AntiFlingToggle", {
@@ -2747,14 +3048,22 @@ FunGroup:AddToggle("AntiFlingToggle", {
                 local lastSafeCFrame = nil
                 while Toggles.AntiFlingToggle.Value and not Library.Unloaded do
                     task.wait(0.05)
-                    if Script.Temp.PauseAntiFling then continue end
+                    if Script.Temp.PauseAntiFling then
+                        continue
+                    end
                     local character = lplr.Character
                     local root = character and (Script.Functions.GetRootPart() or character:FindFirstChild("Torso"))
                     if root then
                         local gs = Script.GameState
                         local isActiveGame = gs and States[gs] ~= nil
                         for _, part in pairs(character:GetDescendants()) do
-                            if part:IsA("BodyMover") or part:IsA("BodyVelocity") or part:IsA("BodyGyro") or part:IsA("BodyThrust") or part:IsA("BodyAngularVelocity") then
+                            if
+                                part:IsA("BodyMover")
+                                or part:IsA("BodyVelocity")
+                                or part:IsA("BodyGyro")
+                                or part:IsA("BodyThrust")
+                                or part:IsA("BodyAngularVelocity")
+                            then
                                 part:Destroy()
                             end
                         end
@@ -2769,7 +3078,11 @@ FunGroup:AddToggle("AntiFlingToggle", {
                         end
                         if (root.Position - lastSafeCFrame.Position).Magnitude < 20 then
                             lastSafeCFrame = root.CFrame
-                        elseif lastSafeCFrame and isActiveGame and (root.Position - lastSafeCFrame.Position).Magnitude > 50 then
+                        elseif
+                            lastSafeCFrame
+                            and isActiveGame
+                            and (root.Position - lastSafeCFrame.Position).Magnitude > 50
+                        then
                             root.CFrame = lastSafeCFrame
                             root.Velocity = Vector3.zero
                         end
@@ -2780,7 +3093,7 @@ FunGroup:AddToggle("AntiFlingToggle", {
         else
             Script.Functions.Alert("Anti Fling Disabled", 3)
         end
-    end
+    end,
 })
 
 UsefulGroup:AddToggle("AutoSkipDialog", {
@@ -2794,16 +3107,23 @@ UsefulGroup:AddToggle("AutoSkipDialog", {
         if Value then
             Script.Temp.AutoSkipDialogLoop = task.spawn(function()
                 local PlayerGui = lplr:FindFirstChild("PlayerGui")
-                local DialogueFrameAnnouncement = PlayerGui and PlayerGui:FindFirstChild("DialogueGUI") and PlayerGui.DialogueGUI:FindFirstChild("DialogueFrameAnnouncement")
+                local DialogueFrameAnnouncement = PlayerGui
+                    and PlayerGui:FindFirstChild("DialogueGUI")
+                    and PlayerGui.DialogueGUI:FindFirstChild("DialogueFrameAnnouncement")
                 while Toggles.AutoSkipDialog.Value and not Library.Unloaded do
-                    if lplr:GetAttribute("_DialogueOpen") or (DialogueFrameAnnouncement and DialogueFrameAnnouncement.Visible) then
-                        ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("DialogueRemote"):FireServer(unpack({"Skipped"}))
+                    if
+                        lplr:GetAttribute("_DialogueOpen")
+                        or (DialogueFrameAnnouncement and DialogueFrameAnnouncement.Visible)
+                    then
+                        ReplicatedStorage:WaitForChild("Remotes")
+                            :WaitForChild("DialogueRemote")
+                            :FireServer(unpack({ "Skipped" }))
                     end
                     task.wait(1)
                 end
             end)
         end
-    end
+    end,
 })
 
 UsefulGroup:AddToggle("FullbrightToggle", {
@@ -2830,7 +3150,9 @@ UsefulGroup:AddToggle("FullbrightToggle", {
                 Script.Temp.FullbrightConn:Disconnect()
             end
             Script.Temp.FullbrightConn = Lighting.Changed:Connect(function()
-                if not Toggles.FullbrightToggle.Value then return end
+                if not Toggles.FullbrightToggle.Value then
+                    return
+                end
                 Lighting.Brightness = 2
                 Lighting.ClockTime = 14
                 Lighting.FogEnd = 100000
@@ -2848,7 +3170,7 @@ UsefulGroup:AddToggle("FullbrightToggle", {
                 Script.Temp.FullbrightConn = nil
             end
         end
-    end
+    end,
 })
 
 local function TPBackFromAntiDeath()
@@ -2868,13 +3190,17 @@ AntiDeathGroup:AddToggle("AntiDeathToggle", {
             Script.Temp.AntiDeathTask = nil
         end
         TPBackFromAntiDeath()
-        if not Value then return end
+        if not Value then
+            return
+        end
         Script.Temp.AntiDeathTask = task.spawn(function()
             repeat
                 task.wait()
                 if lplr.Character then
                     local hum = lplr.Character:FindFirstChildOfClass("Humanoid")
-                    if not hum then return end
+                    if not hum then
+                        return
+                    end
                     if hum.Health <= Options.AntiDeathHealthThreshold.Value then
                         if not Script.Temp.OldDeathLocation then
                             pcall(function()
@@ -2887,7 +3213,7 @@ AntiDeathGroup:AddToggle("AntiDeathToggle", {
                 end
             until not Toggles.AntiDeathToggle.Value or Library.Unloaded
         end)
-    end
+    end,
 })
 
 AntiDeathGroup:AddSlider("AntiDeathHealthThreshold", {
@@ -2895,7 +3221,7 @@ AntiDeathGroup:AddSlider("AntiDeathHealthThreshold", {
     Default = 30,
     Min = 10,
     Max = 90,
-    Rounding = 1
+    Rounding = 1,
 })
 
 AntiDeathGroup:AddButton("TP back from AntiDeath", TPBackFromAntiDeath)
@@ -2911,7 +3237,7 @@ MenuGroup:AddToggle("KeybindMenuOpen", {
     Text = "Open Keybind Menu",
     Callback = function(value)
         Library.KeybindFrame.Visible = value
-    end
+    end,
 })
 
 MenuGroup:AddToggle("ShowCustomCursor", {
@@ -2919,10 +3245,12 @@ MenuGroup:AddToggle("ShowCustomCursor", {
     Default = true,
     Callback = function(Value)
         Library.ShowCustomCursor = Value
-    end
+    end,
 })
 
-MenuGroup:AddButton("Unload Script", function() Library:Unload() end)
+MenuGroup:AddButton("Unload Script", function()
+    Library:Unload()
+end)
 
 MenuGroup:AddButton("Reset Settings", function()
     SaveManager:SaveAutoloadConfig("default")
@@ -2937,4 +3265,6 @@ end)
 
 Library.ToggleKeybind = Options.MenuKeybind
 
-task.spawn(function() pcall(Script.Functions.OnLoad) end)
+task.spawn(function()
+    pcall(Script.Functions.OnLoad)
+end)
