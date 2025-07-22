@@ -200,9 +200,17 @@ Library:OnUnload(function()
         end
     end
     for _, conn in pairs(Script.Connections) do
-        pcall(function()
-            conn:Disconnect()
-        end)
+        if type(conn) == "table" then
+            for _, conn2 in pairs(conn) do
+                pcall(function()
+                    conn2:Disconnect()
+                end)
+            end
+        else
+            pcall(function()
+                conn:Disconnect()
+            end)
+        end
     end
     for _, task in pairs(Script.Tasks) do
         pcall(function()
@@ -303,6 +311,7 @@ function Script.Functions.RestartRemotesScript()
 end
 
 function Script.Functions.OnGameStateChange()
+    Script.Temp.OldDeathLocation = nil
     Script.GameState = workspace.Values.CurrentGame.Value
     print("Game State: '"..Script.GameState.."'")
     if Script.GameState then
@@ -1388,7 +1397,7 @@ GreenLightRedLightGroup:AddDropdown("RLGLInjuredPlayer", {
             task.wait(0.2)
             Script.Functions.WinRLGL()
             task.wait(0.2)
-            Script.Functions.UnCarryPerson()
+            ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("ClickedButton"):FireServer(unpack({{tryingtoleave = true}}))
             task.wait(0.2)
             Script.Temp.PauseAntiFling = false
         end
@@ -2187,103 +2196,98 @@ PlayerGroup:AddToggle("InfiniteJump", {
     end
 })
 
-function Script.Functions.FlingCharacterHook(Value)
-    if Value then
-        local function PatchFlingAnticheat()
-            local char = lplr.Character
-            if not char then return end
-            local root = Script.Functions.GetRootPart()
-            if not root then return end
-
-            local anticheatStates = { "Stun", "Anchor", "RotateDisabled", "CantRun", "InCutscene", "DisableHeadLookAt" }
-            if not Script.Temp.FlingAnticheatChildConn then
-                Script.Temp.FlingAnticheatChildConn = char.ChildAdded:Connect(function(child)
-                    if table.find(anticheatStates, child.Name) then
-                        child:Destroy()
-                    end
-                end)
-            end
-
-            if not Script.Temp.FlingAnticheatMT then
-                local mt = getrawmetatable(root)
-                Script.Temp.FlingAnticheatOldNewIndex = mt.__newindex
-                setreadonly(mt, false)
-                mt.__newindex = function(self, key, value)
-                    if self == root and key == "Anchored" and value == true then
-                        return
-                    end
-                    return Script.Temp.FlingAnticheatOldNewIndex(self, key, value)
-                end
-                setreadonly(mt, true)
-                Script.Temp.FlingAnticheatMT = mt
-            end
-        end
-
-        local function onChar(char)
-            task.wait(1)
-            PatchFlingAnticheat()
-        end
-        Script.Temp.FlingAnticheatCharConn = lplr.CharacterAdded:Connect(onChar)
-        if lplr.Character then
-            PatchFlingAnticheat()
-        end
-        Script.Functions.Alert("Anticheat Patched!", 3)
-    else
-        if Script.Temp.FlingAnticheatCharConn then
-            Script.Temp.FlingAnticheatCharConn:Disconnect()
-            Script.Temp.FlingAnticheatCharConn = nil
-        end
-        if Script.Temp.FlingAnticheatChildConn then
-            Script.Temp.FlingAnticheatChildConn:Disconnect()
-            Script.Temp.FlingAnticheatChildConn = nil
-        end
-        if Script.Temp.FlingAnticheatMT and Script.Temp.FlingAnticheatOldNewIndex then
-            local root = Script.Functions.GetRootPart()
-            if root then
-                local mt = Script.Temp.FlingAnticheatMT
-                setreadonly(mt, false)
-                mt.__newindex = Script.Temp.FlingAnticheatOldNewIndex
-                setreadonly(mt, true)
-            end
-            Script.Temp.FlingAnticheatMT = nil
-            Script.Temp.FlingAnticheatOldNewIndex = nil
-        end
-        Script.Functions.Alert("Anticheat Patch Disabled!", 3)
-    end
-end
-
-function Script.Functions.BlockAnticheatRemote(call)
-    if not hookmetamethod then
-        return
-    end
-    Script.HookMethods.Anticheat = nil
-    if not call then return end
-    Script.HookMethods.Anticheat = function(self, method, args)
-        if self == "TemporaryReachedBindable" and method == "FireServer" then
-            if type(args[1]) == "table" and (args[1].FallingPlayer ~= nil or args[1].funnydeath ~= nil) then
-                return nil
-            end
-        end
-
-        if self == "RandomOtherRemotes" and method == "FireServer" then
-            if type(args[1]) == "table" and args[1].FallenOffMap ~= nil then
-                return nil
-            end
-        end
-        return args
-    end
-end
-
 SecurityGroup:AddToggle("Fling Character Hook", {
     Text = "Fling Character Hook",
     Default = false,
-    Callback = Script.Functions.FlingCharacterHook
+    Callback = function(Value)
+        if Value then
+            local function PatchFlingAnticheat()
+                local char = lplr.Character
+                if not char then return end
+                local root = Script.Functions.GetRootPart()
+                if not root then return end
+
+                local anticheatStates = { "Stun", "Anchor", "RotateDisabled", "CantRun", "InCutscene", "DisableHeadLookAt" }
+                if not Script.Temp.FlingAnticheatChildConn then
+                    Script.Temp.FlingAnticheatChildConn = char.ChildAdded:Connect(function(child)
+                        if table.find(anticheatStates, child.Name) then
+                            task.delay(0.01, function() child:Destroy() end)
+                        end
+                    end)
+                end
+
+                if not Script.Temp.FlingAnticheatMT then
+                    local mt = getrawmetatable(root)
+                    Script.Temp.FlingAnticheatOldNewIndex = mt.__newindex
+                    setreadonly(mt, false)
+                    mt.__newindex = function(self, key, value)
+                        if self == root and key == "Anchored" and value == true then
+                            return
+                        end
+                        return Script.Temp.FlingAnticheatOldNewIndex(self, key, value)
+                    end
+                    setreadonly(mt, true)
+                    Script.Temp.FlingAnticheatMT = mt
+                end
+            end
+
+            Script.Temp.FlingAnticheatCharConn = lplr.CharacterAdded:Connect(function(char)
+                task.wait(1)
+                PatchFlingAnticheat()
+            end)
+            if lplr.Character then
+                PatchFlingAnticheat()
+            end
+            Script.Functions.Alert("Anticheat Patched!", 3)
+        else
+            if Script.Temp.FlingAnticheatCharConn then
+                Script.Temp.FlingAnticheatCharConn:Disconnect()
+                Script.Temp.FlingAnticheatCharConn = nil
+            end
+            if Script.Temp.FlingAnticheatChildConn then
+                Script.Temp.FlingAnticheatChildConn:Disconnect()
+                Script.Temp.FlingAnticheatChildConn = nil
+            end
+            if Script.Temp.FlingAnticheatMT and Script.Temp.FlingAnticheatOldNewIndex then
+                local root = Script.Functions.GetRootPart()
+                if root then
+                    local mt = Script.Temp.FlingAnticheatMT
+                    setreadonly(mt, false)
+                    mt.__newindex = Script.Temp.FlingAnticheatOldNewIndex
+                    setreadonly(mt, true)
+                end
+                Script.Temp.FlingAnticheatMT = nil
+                Script.Temp.FlingAnticheatOldNewIndex = nil
+            end
+            Script.Functions.Alert("Anticheat Patch Disabled!", 3)
+        end
+    end
 })
 
 SecurityGroup:AddToggle("Block Anticheat Remote", {
     Text = "Block Anticheat Remote",
     Default = false,
-    Callback = Script.Functions.BlockAnticheatRemote
+    Callback = function(call)
+        if not hookmetamethod then
+            return
+        end
+        Script.HookMethods.Anticheat = nil
+        if not call then return end
+        Script.HookMethods.Anticheat = function(self, method, args)
+            if self == "TemporaryReachedBindable" and method == "FireServer" then
+                if type(args[1]) == "table" and (args[1].FallingPlayer ~= nil or args[1].funnydeath ~= nil) then
+                    return nil
+                end
+            end
+
+            if self == "RandomOtherRemotes" and method == "FireServer" then
+                if type(args[1]) == "table" and args[1].FallenOffMap ~= nil then
+                    return nil
+                end
+            end
+            return args
+        end
+    end
 })
 
 SecurityGroup:AddToggle("AntiAfk", {
@@ -2847,6 +2851,14 @@ UsefulGroup:AddToggle("FullbrightToggle", {
     end
 })
 
+local function TPBackFromAntiDeath()
+    if Script.Temp.OldDeathLocation then
+        Script.Functions.DisableAntiFling()
+        lplr.Character:PivotTo(Script.Temp.OldDeathLocation)
+        Script.Temp.OldDeathLocation = nil
+    end
+end
+
 AntiDeathGroup:AddToggle("AntiDeathToggle", {
     Text = "Anti Death",
     Default = false,
@@ -2855,6 +2867,7 @@ AntiDeathGroup:AddToggle("AntiDeathToggle", {
             task.cancel(Script.Temp.AntiDeathTask)
             Script.Temp.AntiDeathTask = nil
         end
+        TPBackFromAntiDeath()
         if not Value then return end
         Script.Temp.AntiDeathTask = task.spawn(function()
             repeat
@@ -2863,16 +2876,12 @@ AntiDeathGroup:AddToggle("AntiDeathToggle", {
                     local hum = lplr.Character:FindFirstChildOfClass("Humanoid")
                     if not hum then return end
                     if hum.Health <= Options.AntiDeathHealthThreshold.Value then
-                        pcall(function()
-                            Script.Temp.OldDeathLocation = CFrame.new(Script.Functions.GetRootPart().Position)
-                        end)
-                        Script.Functions.DisableAntiFling()
-                        lplr.Character:PivotTo(CFrame.new(Vector3.new(-108, 329.1, 462.1)))
-                    else
-                        if Script.Temp.OldDeathLocation then
+                        if not Script.Temp.OldDeathLocation then
+                            pcall(function()
+                                Script.Temp.OldDeathLocation = CFrame.new(Script.Functions.GetRootPart().Position)
+                            end)
                             Script.Functions.DisableAntiFling()
-                            lplr.Character:PivotTo(Script.Temp.OldDeathLocation)
-                            Script.Temp.OldDeathLocation = nil
+                            lplr.Character:PivotTo(CFrame.new(Vector3.new(-108, 329.1, 462.1)))
                         end
                     end
                 end
@@ -2888,6 +2897,8 @@ AntiDeathGroup:AddSlider("AntiDeathHealthThreshold", {
     Max = 90,
     Rounding = 1
 })
+
+AntiDeathGroup:AddButton("TP back from AntiDeath", TPBackFromAntiDeath)
 
 MenuGroup:AddLabel("Menu bind"):AddKeyPicker("MenuKeybind", {
     Default = "RightShift",
