@@ -4,10 +4,17 @@
 -- Original script owner: Voidware
 -- Forked from: https://github.com/VapeVoidware/VW-Add
 
+local repo = "https://raw.githubusercontent.com/NSeydulla/VW-Add/refs/heads/TestingMultiFile/"
+
 --// Setup \\--
 if not getgenv().shared then
     getgenv().shared = {}
 end
+
+if getgenv().shared.VoidwareLoading then
+    return
+end
+getgenv().shared.VoidwareLoading = true
 
 if getgenv().shared.Voidware_InkGame_Library then
     local suc = pcall(function()
@@ -17,9 +24,36 @@ if getgenv().shared.Voidware_InkGame_Library then
         return
     end
     while getgenv().shared.Voidware_InkGame_Library ~= nil do
-        task.wait(0.1)
+        task.wait(0.3)
     end
 end
+
+local ModulesFolder = "voidware_linoria/ink_game/modules"
+local TabGroupNames = {
+    "RedLightGreenLight",
+    "Dalgona",
+    "HideAndSeek",
+    "TugOfWar",
+    "JumpRope",
+    "GlassBridge",
+    "Mingle",
+    "Rebel",
+    "Player",
+    "Security",
+    "Fun",
+    "Useful",
+    "Interaction",
+    "AntiDeath",
+    "Checkpoint",
+    "Misc",
+    "Emotes",
+    "Performance",
+    "MainESP",
+    "HideAndSeekESP",
+    "ESPSettings",
+    "FOV",
+    "Menu",
+}
 
 pcall(function()
     local isNew = false
@@ -29,6 +63,8 @@ pcall(function()
         "voidware_linoria/themes",
         "voidware_linoria/ink_game/settings",
         "voidware_linoria/ink_game/themes",
+        ModulesFolder,
+        ModulesFolder .. "/Groups",
     }) do
         if not isfolder(v) then
             makefolder(v)
@@ -46,6 +82,54 @@ pcall(function()
     end
 end)
 
+local WebVersion = game:HttpGet(repo .. "version.txt")
+local Success, ModulesIsFile = pcall(function()
+    if not readfile or not writefile or not listfiles then
+        return
+    end
+    local Success, localVersion = pcall(function()
+        readfile(ModulesFolder .. "/version.txt")
+    end)
+    localVersion = Success and localVersion
+
+    if localVersion == WebVersion then
+        local groupFiles = listfiles(ModulesFolder .. "/Groups")
+        if #groupFiles == #TabGroupNames then
+            local function contains(list, str)
+                for _, v in ipairs(list) do
+                    if v == str then
+                        return true
+                    end
+                end
+                return false
+            end
+            local function equal(tab1, tab2)
+                for _, v in tab1 do
+                    if not contains(tab2, v) then
+                        return false
+                    end
+                end
+                return true
+            end
+            if equal(groupFiles, TabGroupNames) then
+                return true
+            end
+        end
+    end
+
+    writefile(ModulesFolder .. "/Utils.luau", game:HttpGet(repo .. "Utils.luau"))
+
+    for _, folder in ipairs(TabGroupNames) do
+        writefile(
+            ModulesFolder .. "/Groups/" .. folder .. ".luau",
+            game:HttpGet(repo .. "Groups/" .. folder .. ".luau")
+        )
+    end
+    writefile(ModulesFolder .. "/version.txt", WebVersion)
+    return true
+end)
+ModulesIsFile = Success and ModulesIsFile
+
 --// Library \\--
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/mstudio45/Obsidian/main/Library.lua"))()
 local ThemeManager =
@@ -55,7 +139,7 @@ local SaveManager =
 getgenv().shared.Voidware_InkGame_Library = Library
 
 local Window = Library:CreateWindow({
-    Title = "Voidware - Ink Game",
+    Title = "Voidware - Ink Game | Version: " .. WebVersion,
     Footer = "This is fork of Voidware! Original scripts discord - discord.gg/voidware",
     Center = true,
     AutoShow = true,
@@ -112,7 +196,7 @@ ThemeManager:ApplyToTab(Tabs["UI Settings"])
 
 --// Script \\--
 local Script = {
-    repo = "https://raw.githubusercontent.com/NSeydulla/VW-Add/refs/heads/TestingMultiFile/",
+    repo = repo,
     GameState = "unknown",
     Services = setmetatable({}, {
         __index = function(self, key)
@@ -148,35 +232,23 @@ local Script = {
     Camera = workspace.CurrentCamera,
 }
 
-Script.Functions = loadstring(game:HttpGet(Script.repo .. "Utils.luau"))()(Script, Library)
+if ModulesIsFile then
+    Script.Functions = loadfile("Utils.luau")()(Script, Library)
+else
+    Script.Functions = loadstring(game:HttpGet(Script.repo .. "Utils.luau"))()(Script, Library)
+end
 Script.AutoWin.LightsOut = Script.Functions.TeleportToSafe
 
-for _, TabGroup in ipairs({
-    "RedLightGreenLight",
-    "Dalgona",
-    "HideAndSeek",
-    "TugOfWar",
-    "JumpRope",
-    "GlassBridge",
-    "Mingle",
-    "Rebel",
-    "Player",
-    "Security",
-    "Fun",
-    "Useful",
-    "Interaction",
-    "AntiDeath",
-    "Checkpoint",
-    "Misc",
-    "Emotes",
-    "Performance",
-    "MainESP",
-    "HideAndSeekESP",
-    "ESPSettings",
-    "FOV",
-    "Menu",
-}) do
-    loadstring(game:HttpGet(Script.repo .. "Groups/" .. TabGroup .. ".luau"))()(TabGroups[TabGroup], Script, Library)
+for _, TabGroup in ipairs(TabGroupNames) do
+    if ModulesIsFile then
+        loadfile(ModulesFolder .. "Groups/" .. TabGroup .. ".luau")()(TabGroups[TabGroup], Script, Library)
+    else
+        loadstring(game:HttpGet(Script.repo .. "Groups/" .. TabGroup .. ".luau"))()(
+            TabGroups[TabGroup],
+            Script,
+            Library
+        )
+    end
 end
 
 Library:OnUnload(Script.Functions.OnUnload)

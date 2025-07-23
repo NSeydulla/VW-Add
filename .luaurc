@@ -9,6 +9,9 @@
     "getrawmetatable",
     "getnamecallmethod",
     "setreadonly",
-    "checkcaller"
+    "checkcaller",
+    "readfile",
+    "listfiles",
+    "loadfile"
   ]
 }
