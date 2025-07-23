@@ -18,22 +18,24 @@ return function(Script, Library)
     end)
 
     return {
+        OnGameStateChange = function()
+            Script.GameState = workspace.Values.CurrentGame.Value
+
+            if Script.GameState then
+                Script.GameState = tostring(Script.GameState)
+            end
+
+            if Library.Toggles.InkGameAutowin.Value then
+                Script.Functions.HandleAutowin()
+            end
+
+            if Script.OnGame[Script.GameState] then
+                Script.OnGame[Script.GameState]()
+            end
+        end,
+
         OnLoad = function()
-            pcall(function()
-                Script.GameState = workspace.Values.CurrentGame.Value
-
-                if Script.GameState then
-                    Script.GameState = tostring(Script.GameState)
-                end
-
-                if Library.Toggles.InkGameAutowin.Value then
-                    Script.Functions.HandleAutowin()
-                end
-
-                if Script.OnGame[Script.GameState] then
-                    Script.OnGame[Script.GameState]()
-                end
-            end)
+            pcall(Script.Functions.OnGameStateChange)
             Script.Connections.OnGameStateChange = workspace
                 :WaitForChild("Values")
                 :WaitForChild("CurrentGame")
