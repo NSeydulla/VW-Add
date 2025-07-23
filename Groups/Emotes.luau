@@ -60,6 +60,14 @@ return function(TabGroup, Script, Library)
         Library.Options.EmotesList:SetValues(tab)
     end
 
+    task.spawn(function()
+        RefreshEmoteList()
+        local Animations = ReplicatedStorage:WaitForChild("Animations")
+        local Emotes = Animations:WaitForChild("Emotes")
+        Library:GiveSignal(Emotes.ChildAdded:Connect(RefreshEmoteList))
+        Library:GiveSignal(Emotes.ChildRemoved:Connect(RefreshEmoteList))
+    end)
+
     TabGroup:AddDropdown("EmotesList", {
         Text = "Emotes List",
         Values = {},

@@ -2,7 +2,6 @@ return function(Script, Library)
     local RunService = Script.Services.RunService
     local Players = Script.Services.Players
     local lplr = Players.LocalPlayer
-    local ReplicatedStorage = Script.Services.ReplicatedStorage
 
     Script.Temp.OriginalNameCall = hookmetamethod(game, "__namecall", function(self, ...)
         local args = { ... }
@@ -40,13 +39,6 @@ return function(Script, Library)
                 :WaitForChild("CurrentGame")
                 :GetPropertyChangedSignal("Value")
                 :Connect(Script.Functions.OnGameStateChange)
-            task.spawn(function()
-                Script.Functions.RefreshEmoteList()
-                local Animations = ReplicatedStorage:WaitForChild("Animations")
-                local Emotes = Animations:WaitForChild("Emotes")
-                Library:GiveSignal(Emotes.ChildAdded:Connect(Script.Functions.RefreshEmoteList))
-                Library:GiveSignal(Emotes.ChildRemoved:Connect(Script.Functions.RefreshEmoteList))
-            end)
             Library:GiveSignal(workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
                 if workspace.CurrentCamera then
                     Script.Camera = workspace.CurrentCamera

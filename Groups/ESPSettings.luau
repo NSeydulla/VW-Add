@@ -5,7 +5,7 @@ return function(TabGroup, Script, Library)
             v = Library.Options.ESPTransparency.Value
         end
         for _, ESPs in pairs(Script.ESPTable) do
-            for esp in ipairs(ESPs) do
+            for _, esp in pairs(ESPs) do
                 for _, highlight in pairs(esp) do
                     highlight.Transparency = v
                 end
