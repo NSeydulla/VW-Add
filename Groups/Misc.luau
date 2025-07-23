@@ -41,24 +41,24 @@ return function(TabGroup, Script, Library)
                 end
             end
 
-            for _, obj in pairs(HumanoidRootPart:GetChildren()) do
-                if obj:IsA("BallSocketConstraint") or obj.Name:match("^CacheAttachment") then
-                    obj:Destroy()
-                end
-            end
-            local Torso = Character:FindFirstChild("Torso")
-            local joints = { "Left Hip", "Left Shoulder", "Neck", "Right Hip", "Right Shoulder" }
-            for _, jointName in pairs(joints) do
-                local motor = Torso:FindFirstChild(jointName)
-                if motor and motor:IsA("Motor6D") and not motor.Part0 then
-                    motor.Part0 = Torso
-                end
-            end
-            for _, part in pairs(Character:GetChildren()) do
-                if part:IsA("BasePart") and part:FindFirstChild("BoneCustom") then
-                    part.BoneCustom:Destroy()
-                end
-            end
+            -- for _, obj in pairs(HumanoidRootPart:GetChildren()) do
+            --     if obj:IsA("BallSocketConstraint") or obj.Name:match("^CacheAttachment") then
+            --         obj:Destroy()
+            --     end
+            -- end
+            -- local Torso = Character:FindFirstChild("Torso")
+            -- local joints = { "Left Hip", "Left Shoulder", "Neck", "Right Hip", "Right Shoulder" }
+            -- for _, jointName in pairs(joints) do
+            --     local motor = Torso:FindFirstChild(jointName)
+            --     if motor and motor:IsA("Motor6D") and not motor.Part0 then
+            --         motor.Part0 = Torso
+            --     end
+            -- end
+            -- for _, part in pairs(Character:GetChildren()) do
+            --     if part:IsA("BasePart") and part:FindFirstChild("BoneCustom") then
+            --         part.BoneCustom:Destroy()
+            --     end
+            -- end
             if not Value then
                 return
             end
