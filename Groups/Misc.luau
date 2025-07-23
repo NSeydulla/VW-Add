@@ -21,8 +21,10 @@ return function(TabGroup, Script, Library)
             end
             for _, child in ipairs(Character:GetChildren()) do
                 if child.Name == "Ragdoll" then
-                    pcall(function()
-                        child:Destroy()
+                    task.delay(0.01, function()
+                        pcall(function()
+                            child:Destroy()
+                        end)
                     end)
                 end
             end
