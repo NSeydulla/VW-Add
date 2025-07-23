@@ -3,6 +3,63 @@ return function(TabGroup, Script, Library)
     local lplr = Players.LocalPlayer
     local ReplicatedStorage = Script.Services.ReplicatedStorage
 
+    local function GetEmotesMeta()
+        local Animations = ReplicatedStorage:WaitForChild("Animations", 10)
+        if not Animations then
+            Script.Functions.Alert("[GetEmotesMeta]: Animations folder timeout!")
+            return
+        end
+        local Emotes = Animations:WaitForChild("Emotes", 10)
+        if not Emotes then
+            Script.Functions.Alert("[GetEmotesMeta]: Emotes folder timeout!")
+            return
+        end
+        local res = {}
+        for i, v in pairs(Emotes:GetChildren()) do
+            if v.ClassName ~= "Animation" then
+                continue
+            end
+            if not v.AnimationId then
+                continue
+            end
+
+            if res[v.Name] then
+                Script.Functions.Alert(
+                    "[GetEmotesMeta | Resolver]: The emote "
+                        .. tostring(v.Name)
+                        .. " is duplicated! Overwriting past data..."
+                )
+            end
+
+            res[v.Name] = {
+                anim = v.AnimationId,
+                object = v,
+            }
+        end
+        Script.Temp.EmoteList = res
+        return res
+    end
+
+    local function RefreshEmoteList()
+        local w = function(str)
+            Script.Functions.Alert("[RefreshEmoteList]: " .. tostring(str))
+        end
+        local res = GetEmotesMeta()
+        if not res then
+            w("res not found!")
+            return
+        end
+        if not Library.Options.EmotesList then
+            w("Emotes List Option not found!")
+            return
+        end
+        local tab = {}
+        for i, v in pairs(res) do
+            table.insert(tab, tostring(i))
+        end
+        Library.Options.EmotesList:SetValues(tab)
+    end
+
     TabGroup:AddDropdown("EmotesList", {
         Text = "Emotes List",
         Values = {},
@@ -78,63 +135,6 @@ return function(TabGroup, Script, Library)
             Script.Temp.EmoteTrack = nil
         end
     end)
-
-    local function GetEmotesMeta()
-        local Animations = ReplicatedStorage:WaitForChild("Animations", 10)
-        if not Animations then
-            Script.Functions.Alert("[GetEmotesMeta]: Animations folder timeout!")
-            return
-        end
-        local Emotes = Animations:WaitForChild("Emotes", 10)
-        if not Emotes then
-            Script.Functions.Alert("[GetEmotesMeta]: Emotes folder timeout!")
-            return
-        end
-        local res = {}
-        for i, v in pairs(Emotes:GetChildren()) do
-            if v.ClassName ~= "Animation" then
-                continue
-            end
-            if not v.AnimationId then
-                continue
-            end
-
-            if res[v.Name] then
-                Script.Functions.Alert(
-                    "[GetEmotesMeta | Resolver]: The emote "
-                        .. tostring(v.Name)
-                        .. " is duplicated! Overwriting past data..."
-                )
-            end
-
-            res[v.Name] = {
-                anim = v.AnimationId,
-                object = v,
-            }
-        end
-        Script.Temp.EmoteList = res
-        return res
-    end
-
-    local function RefreshEmoteList()
-        local w = function(str)
-            Script.Functions.Alert("[RefreshEmoteList]: " .. tostring(str))
-        end
-        local res = GetEmotesMeta()
-        if not res then
-            w("res not found!")
-            return
-        end
-        if not Library.Options.EmotesList then
-            w("Emotes List Option not found!")
-            return
-        end
-        local tab = {}
-        for i, v in pairs(res) do
-            table.insert(tab, tostring(i))
-        end
-        Library.Options.EmotesList:SetValues(tab)
-    end
 
     task.spawn(function()
         RefreshEmoteList()
