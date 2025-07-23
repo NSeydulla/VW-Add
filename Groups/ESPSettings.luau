@@ -5,8 +5,10 @@ return function(TabGroup, Script, Library)
             v = Library.Options.ESPTransparency.Value
         end
         task.delay(0.1, function()
-            for _, ESPs in pairs(Script.ESPTable) do
-                for _, esp in pairs(ESPs) do
+            for i, ESPs in pairs(Script.ESPTable) do
+                print(i)
+                for j, esp in pairs(ESPs) do
+                    print("    " .. j, esp.Text)
                     for _, highlight in pairs(esp.Highlights) do
                         highlight.Transparency = v
                     end
