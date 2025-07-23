@@ -34,6 +34,6 @@ return function(TabGroup, Script, Library)
         pcall(function()
             Library:Unload()
         end)
-        loadstring(game:HttpGet(Script.repo .. "inkgame.lua", true))()
+        loadstring(game:HttpGet(Script.repo .. "main.luau", true))()
     end)
 end
