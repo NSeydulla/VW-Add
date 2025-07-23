@@ -7,7 +7,7 @@ return function(TabGroup, Script, Library)
         task.delay(0.1, function()
             for _, ESPs in pairs(Script.ESPTable) do
                 for _, esp in pairs(ESPs) do
-                    for _, highlight in pairs(esp) do
+                    for _, highlight in pairs(esp.Highlights) do
                         highlight.Transparency = v
                     end
                 end
