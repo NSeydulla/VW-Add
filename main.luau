@@ -233,7 +233,7 @@ local Script = {
 }
 
 if ModulesIsFile then
-    Script.Functions = loadfile("Utils.luau")()(Script, Library)
+    Script.Functions = loadfile(ModulesFolder .. "/Utils.luau")()(Script, Library)
 else
     Script.Functions = loadstring(game:HttpGet(Script.repo .. "Utils.luau"))()(Script, Library)
 end
@@ -241,7 +241,7 @@ Script.AutoWin.LightsOut = Script.Functions.TeleportToSafe
 
 for _, TabGroup in ipairs(TabGroupNames) do
     if ModulesIsFile then
-        loadfile(ModulesFolder .. "Groups/" .. TabGroup .. ".luau")()(TabGroups[TabGroup], Script, Library)
+        loadfile(ModulesFolder .. "/Groups/" .. TabGroup .. ".luau")()(TabGroups[TabGroup], Script, Library)
     else
         loadstring(game:HttpGet(Script.repo .. "Groups/" .. TabGroup .. ".luau"))()(
             TabGroups[TabGroup],
