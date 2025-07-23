@@ -4,10 +4,12 @@ return function(TabGroup, Script, Library)
 
     local function PlayerESP(player: Player)
         if
-            not player.Character
-            and player.Character.PrimaryPart
-            and player.Character:FindFirstChild("Humanoid")
-            and player.Character.Humanoid.Health > 0
+            not (
+                player.Character
+                and player.Character.PrimaryPart
+                and player.Character:FindFirstChild("Humanoid")
+                and player.Character.Humanoid.Health > 0
+            )
         then
             return
         end
