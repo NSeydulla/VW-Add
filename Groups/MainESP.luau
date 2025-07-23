@@ -30,30 +30,6 @@ return function(TabGroup, Script, Library)
         end))
     end
 
-    local function SetupPlayerConnection(player: Player)
-        if player == lplr then
-            return
-        end
-        if player.Character then
-            if Library.Toggles.PlayerESP.Value then
-                PlayerESP(player)
-            end
-        end
-
-        Script.Connections.PlayerCharAdded[player.Name] = player.CharacterAdded:Connect(function(newCharacter)
-            task.delay(0.1, function()
-                if Library.Toggles.PlayerESP.Value then
-                    PlayerESP(player)
-                end
-            end)
-        end)
-    end
-
-    for _, player in pairs(Players:GetPlayers()) do
-        SetupPlayerConnection(player)
-    end
-    Script.Connections.PlayerAdded = Players.PlayerAdded:Connect(SetupPlayerConnection)
-
     TabGroup:AddToggle("PlayerESP", {
         Text = "Player",
         Default = false,
@@ -79,6 +55,30 @@ return function(TabGroup, Script, Library)
             end
         end,
     })
+
+    local function SetupPlayerConnection(player: Player)
+        if player == lplr then
+            return
+        end
+        if player.Character then
+            if Library.Toggles.PlayerESP.Value then
+                PlayerESP(player)
+            end
+        end
+
+        Script.Connections.PlayerCharAdded[player.Name] = player.CharacterAdded:Connect(function(newCharacter)
+            task.delay(0.1, function()
+                if Library.Toggles.PlayerESP.Value then
+                    PlayerESP(player)
+                end
+            end)
+        end)
+    end
+
+    for _, player in pairs(Players:GetPlayers()) do
+        SetupPlayerConnection(player)
+    end
+    Script.Connections.PlayerAdded = Players.PlayerAdded:Connect(SetupPlayerConnection)
 
     local function GuardESP(character)
         if character then
