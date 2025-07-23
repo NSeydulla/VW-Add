@@ -29,12 +29,12 @@ return function(TabGroup, Script, Library)
                             return
                         end
                         if hum.Health <= Library.Options.AntiDeathHealthThreshold.Value then
-                            if not Script.Temp.OldDeathLocation or Script.Temp.OldDeathGame ~= Script.GameState then
+                            if (Script.Camera.CFrame.Position - Script.Temp.SafePlace.Position).Magnitude > 20 then
                                 pcall(function()
                                     Script.Temp.OldDeathLocation = CFrame.new(Script.Functions.GetRootPart().Position)
                                     Script.Temp.OldDeathGame = Script.GameState
                                 end)
-                                Script.Functions.SafeTeleport(-108, 329.1, 462.1)
+                                Script.Functions.SafeTeleportToCFrame(Script.Temp.SafePlace)
                                 Script.Functions.Alert("Teleported to safe place!")
                             end
                         end

@@ -17,6 +17,8 @@ return function(Script, Library)
         return Script.Temp.OriginalNameCall(self, unpack(args))
     end)
 
+    Script.Temp.SafePlace = CFrame.new(Vector3.new(-108, 331, 462.1))
+
     return {
         OnGameStateChange = function()
             Script.GameState = workspace.Values.CurrentGame.Value
@@ -213,9 +215,14 @@ return function(Script, Library)
 
         GetRootPart = function()
             if not lplr.Character then
+                Script.Functions.Alert("Character not found! try again")
                 return
             end
-            return lplr.Character:WaitForChild("HumanoidRootPart", 1)
+            local hum = lplr.Character:WaitForChild("HumanoidRootPart", 1)
+            if not hum then
+                Script.Functions.Alert("Humanoid part not found! try again")
+            end
+            return hum
         end,
 
         SafeTeleport = function(x: number, y: number, z: number)
@@ -223,6 +230,10 @@ return function(Script, Library)
         end,
 
         SafeTeleportToCFrame = function(cframe: CFrame)
+            if not lplr.Character then
+                Script.Functions.Alert("Character not found! try again")
+                return
+            end
             local Value = Library.Toggles.AntiFlingToggle.Value
             if Value then
                 Library.Toggles.AntiFlingToggle:SetValue(false)
@@ -234,13 +245,12 @@ return function(Script, Library)
         end,
 
         TeleportToSafe = function()
-            if not lplr.Character then
+            local hum = Script.Functions.GetRootPart()
+            if not hum then
                 return
             end
-            pcall(function()
-                Script.Temp.OldLocation = CFrame.new(Script.Functions.GetRootPart().Position)
-            end)
-            Script.Functions.SafeTeleport(-108, 335, 462.1)
+            Script.Temp.OldLocation = CFrame.new(hum.Position)
+            Script.Functions.SafeTeleportToCFrame(Script.Temp.SafePlace)
         end,
 
         ESP = function(args: ESP)

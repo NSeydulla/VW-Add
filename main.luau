@@ -74,21 +74,22 @@ local Tabs = {
 }
 
 local TabGroups = {
-    Player = Tabs.Main:AddLeftGroupbox("Player", "user"),
-    RedLightGreenLight = Tabs.Main:AddRightGroupbox("Red Light / Green Light", "traffic-light"),
-    Dalgona = Tabs.Main:AddLeftGroupbox("Dalgona", "circle"),
-    HideAndSeek = Tabs.Main:AddRightGroupbox("Hide And Seeek", "search"),
-    TugOfWar = Tabs.Main:AddLeftGroupbox("Tug Of War", "rope"),
-    JumpRope = Tabs.Main:AddRightGroupbox("Jump Rope", "rope"),
-    GlassBridge = Tabs.Main:AddLeftGroupbox("Glass Bridge", "bridge"),
-    Mingle = Tabs.Main:AddRightGroupbox("Mingle", "users"),
-    Security = Tabs.Main:AddLeftGroupbox("Security", "shield"),
+    RedLightGreenLight = Tabs.Main:AddLeftGroupbox("Red Light / Green Light", "traffic-light"),
+    Dalgona = Tabs.Main:AddRightGroupbox("Dalgona", "circle"),
+    HideAndSeek = Tabs.Main:AddLeftGroupbox("Hide And Seeek", "search"),
+    TugOfWar = Tabs.Main:AddRightGroupbox("Tug Of War", "rope"),
+    JumpRope = Tabs.Main:AddLeftGroupbox("Jump Rope", "rope"),
+    GlassBridge = Tabs.Main:AddRightGroupbox("Glass Bridge", "bridge"),
+    Mingle = Tabs.Main:AddLeftGroupbox("Mingle", "users"),
     Rebel = Tabs.Main:AddRightGroupbox("Rebel", "sword"),
 
+    Player = Tabs.Other:AddLeftGroupbox("Player", "user"),
+    Security = Tabs.Other:AddRightGroupbox("Security", "shield"),
     Fun = Tabs.Other:AddLeftGroupbox("Fun", "zap"),
     Useful = Tabs.Other:AddRightGroupbox("Useful Stuff", "star"),
     Interaction = Tabs.Other:AddLeftGroupbox("Interaction", "hand-pointer"),
     AntiDeath = Tabs.Other:AddRightGroupbox("Anti Death", "skull"),
+    Checkpoint = Tabs.Other:AddLeftGroupbox("Checkpoint", "skull"),
 
     Misc = Tabs.Misc:AddLeftGroupbox("Misc", "wrench"),
     Emotes = Tabs.Misc:AddRightGroupbox("Emote", "smile"),
@@ -151,7 +152,6 @@ Script.Functions = loadstring(game:HttpGet(Script.repo .. "Utils.luau"))()(Scrip
 Script.AutoWin.LightsOut = Script.Functions.TeleportToSafe
 
 for _, TabGroup in ipairs({
-    "Player",
     "RedLightGreenLight",
     "Dalgona",
     "HideAndSeek",
@@ -159,12 +159,14 @@ for _, TabGroup in ipairs({
     "JumpRope",
     "GlassBridge",
     "Mingle",
-    "Security",
     "Rebel",
+    "Player",
+    "Security",
     "Fun",
     "Useful",
     "Interaction",
     "AntiDeath",
+    "Checkpoint",
     "Misc",
     "Emotes",
     "Performance",
