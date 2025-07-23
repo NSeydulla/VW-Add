@@ -21,10 +21,8 @@ return function(TabGroup, Script, Library)
             end
             for _, child in ipairs(Character:GetChildren()) do
                 if child.Name == "Ragdoll" then
-                    task.delay(0.01, function()
-                        pcall(function()
-                            child:Destroy()
-                        end)
+                    pcall(function()
+                        child:Destroy()
                     end)
                 end
             end
@@ -35,20 +33,48 @@ return function(TabGroup, Script, Library)
                 Humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
                 Humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, true)
             end)
+
+            for _, folderName in pairs({ "Stun", "RotateDisabled", "RagdollWakeupImmunity", "InjuredWalking" }) do
+                local folder = Character:FindFirstChild(folderName)
+                if folder then
+                    folder:Destroy()
+                end
+            end
+
+            for _, obj in pairs(HumanoidRootPart:GetChildren()) do
+                if obj:IsA("BallSocketConstraint") or obj.Name:match("^CacheAttachment") then
+                    obj:Destroy()
+                end
+            end
+            local Torso = Character:FindFirstChild("Torso")
+            local joints = { "Left Hip", "Left Shoulder", "Neck", "Right Hip", "Right Shoulder" }
+            for _, jointName in pairs(joints) do
+                local motor = Torso:FindFirstChild(jointName)
+                if motor and motor:IsA("Motor6D") and not motor.Part0 then
+                    motor.Part0 = Torso
+                end
+            end
+            for _, part in pairs(Character:GetChildren()) do
+                if part:IsA("BasePart") and part:FindFirstChild("BoneCustom") then
+                    part.BoneCustom:Destroy()
+                end
+            end
             if not Value then
                 return
             end
             Script.Tasks.RagdollBlockConn = Character.ChildAdded:Connect(function(child)
                 if child.Name == "Ragdoll" then
-                    pcall(function()
-                        child:Destroy()
-                    end)
-                    pcall(function()
-                        Humanoid.PlatformStand = false
-                        Humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
-                        Humanoid:SetStateEnabled(Enum.HumanoidStateType.Freefall, true)
-                        Humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
-                        Humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, true)
+                    task.delay(0.01, function()
+                        pcall(function()
+                            child:Destroy()
+                        end)
+                        pcall(function()
+                            Humanoid.PlatformStand = false
+                            Humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
+                            Humanoid:SetStateEnabled(Enum.HumanoidStateType.Freefall, true)
+                            Humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
+                            Humanoid:SetStateEnabled(Enum.HumanoidStateType.Jumping, true)
+                        end)
                     end)
                 end
             end)

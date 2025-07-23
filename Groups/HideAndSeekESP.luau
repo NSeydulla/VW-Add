@@ -1,4 +1,21 @@
 return function(TabGroup, Script, Library)
+    Script.OnGame.HideAndSeek = function()
+        if Library.Toggles.KeyESP.Value then
+            Library.Toggles.KeyESP.Callback(true)
+        end
+        if Library.Toggles.DoorESP.Value then
+            Library.Toggles.DoorESP.Callback(true)
+        end
+        if Library.Toggles.EscapeDoorESP.Value then
+            Library.Toggles.EscapeDoorESP.Callback(true)
+        end
+        task.delay(1, function()
+            for _, esp in pairs(Script.ESPTable["Player"]) do
+                Script.Functions.ApplyHiderSeekerESP(esp)
+            end
+        end)
+    end
+
     TabGroup:AddLabel("Hider"):AddColorPicker("HiderESPColor", {
         Default = Color3.fromRGB(0, 255, 0),
         Callback = function(Value)

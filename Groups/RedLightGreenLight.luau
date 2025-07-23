@@ -177,9 +177,6 @@ return function(TabGroup, Script, Library)
             Script.Functions.Alert("Game not running")
             return
         end
-        if lplr.Character and lplr.Character:FindFirstChild("InjuredWalking") then
-            lplr.Character.InjuredWalking:Destroy()
-        end
         Library.Toggles.AntiRagdoll.Callback(false)
     end)
 
