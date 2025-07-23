@@ -111,7 +111,7 @@ ThemeManager:ApplyToTab(Tabs["UI Settings"])
 
 --// Script \\--
 local Script = {
-    repo = "https://raw.githubusercontent.com/NSeydulla/VW-Add/TestingMultiFile/",
+    repo = "https://raw.githubusercontent.com/NSeydulla/VW-Add/refs/heads/TestingMultiFile/",
     GameState = "unknown",
     Services = setmetatable({}, {
         __index = function(self, key)
