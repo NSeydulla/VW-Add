@@ -4,13 +4,15 @@ return function(TabGroup, Script, Library)
         if Value then
             v = Library.Options.ESPTransparency.Value
         end
-        for _, ESPs in pairs(Script.ESPTable) do
-            for _, esp in pairs(ESPs) do
-                for _, highlight in pairs(esp) do
-                    highlight.Transparency = v
+        task.delay(0.1, function()
+            for _, ESPs in pairs(Script.ESPTable) do
+                for _, esp in pairs(ESPs) do
+                    for _, highlight in pairs(esp) do
+                        highlight.Transparency = v
+                    end
                 end
             end
-        end
+        end)
     end
 
     TabGroup:AddToggle("ESPHighlight", {
