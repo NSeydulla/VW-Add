@@ -17,7 +17,7 @@ return function(TabGroup, Script, Library)
         Default = false,
         Callback = function(Value)
             if Script.Tasks.AutoPullTask then
-                task.cancel(Script.Temp.AutoPullTask)
+                task.cancel(Script.Tasks.AutoPullTask)
                 Script.Tasks.AutoPullTask = nil
             end
             if Script.Connections.TugOfWarConnDestroyer then
