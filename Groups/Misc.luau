@@ -85,6 +85,17 @@ return function(TabGroup, Script, Library)
             end
         end
     end)
+    local function TeleportBackFromSafe()
+        local OldLocation = Script.Temp.OldLocation
+        if not OldLocation then
+            Script.Functions.Alert("[Invalid location]")
+            return
+        end
+        if not lplr.Character then
+            return
+        end
+        Script.Functions.SafeTeleportToCFrame(OldLocation)
+    end
 
     TabGroup:AddToggle("TeleportToSafePlace", {
         Text = "Teleport To Safe Place",
@@ -95,7 +106,7 @@ return function(TabGroup, Script, Library)
                 Script.Functions.TeleportToSafe()
             else
                 Script.Functions.Alert("Teleported back from Safe Place", 3)
-                Script.Functions.TeleportBackFromSafe()
+                TeleportBackFromSafe()
             end
         end,
     }):AddKeyPicker("TTSPKey", {

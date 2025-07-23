@@ -93,7 +93,6 @@ return function(Script, Library)
                 end
             end
             Library.Unloaded = true
-            pcall(Script.Functions.TeleportBackFromSafe)
             getgenv().shared.Voidware_InkGame_Library = nil
         end,
 
@@ -242,18 +241,6 @@ return function(Script, Library)
                 Script.Temp.OldLocation = CFrame.new(Script.Functions.GetRootPart().Position)
             end)
             Script.Functions.SafeTeleport(-108, 335, 462.1)
-        end,
-
-        TeleportBackFromSafe = function()
-            local OldLocation = Script.Temp.OldLocation
-            if not OldLocation then
-                Script.Functions.Alert("[Invalid location]")
-                return
-            end
-            if not lplr.Character then
-                return
-            end
-            Script.Functions.SafeTeleportToCFrame(OldLocation)
         end,
 
         ESP = function(args: ESP)
