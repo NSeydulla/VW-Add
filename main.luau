@@ -232,7 +232,7 @@ if not Functions then
     error("Something wrong with utils")
 end
 
-Script = Functions(Script, Library)
+Script.Functions = Functions(Script, Library)
 
 for _, TabGroup in ipairs(TabGroupNames) do
     local group
