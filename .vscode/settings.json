@@ -1,0 +1,21 @@
+{
+    "[lua]": {
+        "editor.defaultFormatter": "JohnnyMorganz.stylua",
+        "editor.formatOnSave": true
+    },
+    "[luau]": {
+        "editor.defaultFormatter": "JohnnyMorganz.stylua",
+        "editor.formatOnSave": true
+    },
+    "luau-lsp.sourcemap.enabled": false,
+    "luau-lsp.sourcemap.autogenerate": false,
+    "luau-lsp.sourcemap.includeNonScripts": false,
+    "luau-lsp.types.robloxSecurityLevel": "None",
+    "luau-lsp.diagnostics.strictDatamodelTypes": true,
+    "luau-lsp.diagnostics.workspace": true,
+    "luau-lsp.types.definitionFiles": [ // order is important!!!
+        "sunc.d.luau",
+        "library.d.luau",
+        "global.d.luau",
+    ]
+}

@@ -16,9 +16,10 @@ if getgenv().shared.VoidwareLoading then
 end
 getgenv().shared.VoidwareLoading = true
 
-if getgenv().shared.Voidware_InkGame_Library then
+local library = getgenv().shared.Voidware_InkGame_Library
+if library then
     local suc = pcall(function()
-        getgenv().shared.Voidware_InkGame_Library:Unload()
+        library:Unload()
     end)
     if not suc then
         return
@@ -95,34 +96,16 @@ local Success, ModulesIsFile = pcall(function()
     if localVersion == WebVersion then
         local groupFiles = listfiles(ModulesFolder .. "/Groups")
         if #groupFiles == #TabGroupNames then
-            local function contains(list, str)
-                for _, v in ipairs(list) do
-                    if v == str then
-                        return true
-                    end
-                end
-                return false
-            end
-            local function equal(tab1, tab2)
-                for _, v in tab1 do
-                    if not contains(tab2, v) then
-                        return false
-                    end
-                end
-                return true
-            end
-            if equal(groupFiles, TabGroupNames) then
-                return true
-            end
+            return true
         end
     end
 
     writefile(ModulesFolder .. "/Utils.luau", game:HttpGet(repo .. "Utils.luau"))
 
-    for _, folder in ipairs(TabGroupNames) do
+    for _, module in ipairs(TabGroupNames) do
         writefile(
-            ModulesFolder .. "/Groups/" .. folder .. ".luau",
-            game:HttpGet(repo .. "Groups/" .. folder .. ".luau")
+            ModulesFolder .. "/Groups/" .. module .. ".luau",
+            game:HttpGet(repo .. "Groups/" .. module .. ".luau")
         )
     end
     writefile(ModulesFolder .. "/version.txt", WebVersion)
@@ -131,12 +114,30 @@ end)
 ModulesIsFile = Success and ModulesIsFile
 
 --// Library \\--
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/mstudio45/Obsidian/main/Library.lua"))()
-local ThemeManager =
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/mstudio45/Obsidian/main/addons/ThemeManager.lua"))()
-local SaveManager =
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/mstudio45/Obsidian/main/addons/SaveManager.lua"))()
+local Library: Obsidian
+local SaveManager
+local ThemeManager
+
+local loadLibrary = loadstring(game:HttpGet("https://raw.githubusercontent.com/mstudio45/Obsidian/main/Library.lua"))
+if not loadLibrary then
+    error("Something wrong with Library")
+end
+Library = loadLibrary()
 getgenv().shared.Voidware_InkGame_Library = Library
+
+local loadThemeManager =
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/mstudio45/Obsidian/main/addons/ThemeManager.lua"))
+if not loadThemeManager then
+    error("Something wrong with ThemeManager")
+end
+ThemeManager = loadThemeManager()
+
+local loadSaveManager =
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/mstudio45/Obsidian/main/addons/SaveManager.lua"))
+if not loadSaveManager then
+    error("Something wrong with SaveManager")
+end
+SaveManager = loadSaveManager()
 
 local Window = Library:CreateWindow({
     Title = "Voidware - Ink Game | Version: " .. WebVersion,
@@ -173,7 +174,7 @@ local TabGroups = {
     Useful = Tabs.Other:AddRightGroupbox("Useful Stuff", "star"),
     Interaction = Tabs.Other:AddLeftGroupbox("Interaction", "hand-pointer"),
     AntiDeath = Tabs.Other:AddRightGroupbox("Anti Death", "skull"),
-    Checkpoint = Tabs.Other:AddLeftGroupbox("Checkpoint", "skull"),
+    Checkpoint = Tabs.Other:AddRightGroupbox("Checkpoint", "skull"),
 
     Misc = Tabs.Misc:AddLeftGroupbox("Misc", "wrench"),
     Emotes = Tabs.Misc:AddRightGroupbox("Emote", "smile"),
@@ -195,21 +196,9 @@ SaveManager:BuildConfigSection(Tabs["UI Settings"])
 ThemeManager:ApplyToTab(Tabs["UI Settings"])
 
 --// Script \\--
-local Script = {
+local Script: ScriptType = {
     repo = repo,
     GameState = "unknown",
-    Services = setmetatable({}, {
-        __index = function(self, key)
-            local suc, service = pcall(game.GetService, game, key)
-            if suc and service then
-                self[key] = service
-                return service
-            else
-                warn(`[Services] Warning: "{key}" is not a valid Roblox service.`)
-                return nil
-            end
-        end,
-    }),
     Connections = {
         PlayerCharAdded = {},
         GuardCharAdded = {},
@@ -230,24 +219,31 @@ local Script = {
     SaveManager = SaveManager,
     ThemeManager = ThemeManager,
     Camera = workspace.CurrentCamera,
+    Functions = nil,
 }
 
+local Functions
 if ModulesIsFile then
-    Script.Functions = loadfile(ModulesFolder .. "/Utils.luau")()(Script, Library)
+    Functions = loadfile(ModulesFolder .. "/Utils.luau")
 else
-    Script.Functions = loadstring(game:HttpGet(Script.repo .. "Utils.luau"))()(Script, Library)
+    Functions = loadstring(game:HttpGet(repo .. "Utils.luau"))
 end
-Script.AutoWin.LightsOut = Script.Functions.TeleportToSafe
+if not Functions then
+    error("Something wrong with utils")
+end
+Functions(Script, Library)
 
 for _, TabGroup in ipairs(TabGroupNames) do
+    local group
     if ModulesIsFile then
-        loadfile(ModulesFolder .. "/Groups/" .. TabGroup .. ".luau")()(TabGroups[TabGroup], Script, Library)
+        group = loadfile(ModulesFolder .. "/Groups/" .. TabGroup .. ".luau")
     else
-        loadstring(game:HttpGet(Script.repo .. "Groups/" .. TabGroup .. ".luau"))()(
-            TabGroups[TabGroup],
-            Script,
-            Library
-        )
+        group = loadstring(game:HttpGet(Script.repo .. "Groups/" .. TabGroup .. ".luau"))
+    end
+    if group then
+        group(TabGroups[TabGroup], Script, Library)
+    else
+        error("Something wrong with '" .. TabGroup .. ".luau'")
     end
 end
 
