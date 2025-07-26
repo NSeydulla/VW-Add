@@ -40,6 +40,8 @@ export type FunctionMap = {
     TeleportToSafe: () -> (),
     ESP: (args: ESPArgs) -> ESP?,
 }
+declare Functions: (Script: ScriptType, Library: Obsidian) -> FunctionMap
+declare GroupFunctions: {[string]: (TabGroupBox: ObsidianGroupBox, Script: ScriptType, Library: Obsidian) -> ()}
 
 type HookMethod = (ScriptName: string, MethodName: string, Args: AnyTable) -> AnyTable?
 

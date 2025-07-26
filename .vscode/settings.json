@@ -15,7 +15,7 @@
     "luau-lsp.diagnostics.workspace": true,
     "luau-lsp.types.definitionFiles": [ // order is important!!!
         "sunc.d.luau",
-        "library.d.luau",
-        "global.d.luau",
+        "obsidian.d.luau",
+        "script.d.luau",
     ]
 }

@@ -11,61 +11,32 @@ if not getgenv().shared then
     getgenv().shared = {}
 end
 
-if getgenv().shared.VoidwareLoading then
-    error("[Voidware] Already running!")
-end
-getgenv().shared.VoidwareLoading = true
-
 local library = getgenv().shared.Voidware_InkGame_Library
 if library then
     local suc = pcall(function()
         library:Unload()
     end)
     if not suc then
-        return
+        error("[Voidware] Something went wrong while closing another running script")
     end
-    while getgenv().shared.Voidware_InkGame_Library ~= nil do
+    local TIMEOUT = 5
+    local startTime = tick()
+    while getgenv().shared.Voidware_InkGame_Library do
+        if tick() - startTime > TIMEOUT then
+            error("[Voidware] Timeout while waiting for another script to close")
+        end
         task.wait(0.3)
     end
 end
 
-local ModulesFolder = "voidware_linoria/ink_game/modules"
-local TabGroupNames = {
-    "RedLightGreenLight",
-    "Dalgona",
-    "HideAndSeek",
-    "TugOfWar",
-    "JumpRope",
-    "GlassBridge",
-    "Mingle",
-    "Rebel",
-    "Player",
-    "Security",
-    "Fun",
-    "Useful",
-    "Interaction",
-    "AntiDeath",
-    "Checkpoint",
-    "Misc",
-    "Emotes",
-    "Performance",
-    "MainESP",
-    "HideAndSeekESP",
-    "ESPSettings",
-    "FOV",
-    "Menu",
-}
-
 pcall(function()
     local isNew = false
     for _, v in ipairs({
-        "voidware_linoria",
-        "voidware_linoria/ink_game",
-        "voidware_linoria/themes",
-        "voidware_linoria/ink_game/settings",
-        "voidware_linoria/ink_game/themes",
-        ModulesFolder,
-        ModulesFolder .. "/Groups",
+        "VW_NSeed",
+        "VW_NSeed/ink_game",
+        "VW_NSeed/themes",
+        "VW_NSeed/ink_game/settings",
+        "VW_NSeed/ink_game/themes",
     }) do
         if not isfolder(v) then
             makefolder(v)
@@ -74,44 +45,10 @@ pcall(function()
     end
 
     if isNew then
-        pcall(function()
-            writefile("voidware_linoria/themes/default.txt", "Jester")
-        end)
-        pcall(function()
-            writefile("voidware_linoria/ink_game/settings/default.json", "[]")
-        end)
+        writefile("VW_NSeed/themes/default.txt", "Jester")
+        writefile("VW_NSeed/ink_game/settings/default.json", "[]")
     end
 end)
-
-local WebVersion = "1.0.1"
-local Success, ModulesIsFile = pcall(function()
-    if not readfile or not writefile or not listfiles then
-        return
-    end
-    local Success, localVersion = pcall(function()
-        readfile(ModulesFolder .. "/version.txt")
-    end)
-    localVersion = Success and localVersion
-
-    if localVersion == WebVersion then
-        local groupFiles = listfiles(ModulesFolder .. "/Groups")
-        if #groupFiles == #TabGroupNames then
-            return true
-        end
-    end
-
-    writefile(ModulesFolder .. "/Utils.luau", game:HttpGet(repo .. "Utils.luau"))
-
-    for _, module in ipairs(TabGroupNames) do
-        writefile(
-            ModulesFolder .. "/Groups/" .. module .. ".luau",
-            game:HttpGet(repo .. "Groups/" .. module .. ".luau")
-        )
-    end
-    writefile(ModulesFolder .. "/version.txt", WebVersion)
-    return true
-end)
-ModulesIsFile = Success and ModulesIsFile
 
 --// Library \\--
 local Library: Obsidian
@@ -127,7 +64,7 @@ getgenv().shared.Voidware_InkGame_Library = Library
 
 local Window = Library:CreateWindow({
     Title = "Voidware - Ink Game",
-    Footer = WebVersion .. " | This is fork of Voidware! Original scripts discord - discord.gg/voidware",
+    Footer = "This is fork of Voidware! Original scripts discord - discord.gg/voidware",
     Center = true,
     AutoShow = true,
     Resizable = true,
@@ -141,7 +78,7 @@ local Tabs = {
     Other = Window:AddTab("Other", "settings"),
     Misc = Window:AddTab("Misc", "wrench"),
     Visuals = Window:AddTab("Visuals", "eye"),
-    ["UI Settings"] = Window:AddTab("UI Settings", "sliders-horizontal"),
+    Script = Window:AddTab("Script", "sliders-horizontal"),
 }
 
 local TabGroups = {
@@ -171,7 +108,7 @@ local TabGroups = {
     ESPSettings = Tabs.Visuals:AddRightGroupbox("ESP Settings", "sliders"),
     FOV = Tabs.Visuals:AddRightGroupbox("FOV settings", "user"),
 
-    Menu = Tabs["UI Settings"]:AddRightGroupbox("Menu", "menu"),
+    Menu = Tabs.Script:AddRightGroupbox("Menu", "menu"),
 }
 
 local loadThemeManager =
@@ -191,10 +128,10 @@ SaveManager = loadSaveManager()
 ThemeManager:SetLibrary(Library)
 SaveManager:SetLibrary(Library)
 SaveManager:IgnoreThemeSettings()
-ThemeManager:SetFolder("voidware_linoria")
-SaveManager:SetFolder("voidware_linoria/ink_game")
-SaveManager:BuildConfigSection(Tabs["UI Settings"])
-ThemeManager:ApplyToTab(Tabs["UI Settings"])
+ThemeManager:SetFolder("VW_NSeed")
+SaveManager:SetFolder("VW_NSeed/ink_game")
+SaveManager:BuildConfigSection(Tabs.Script)
+ThemeManager:ApplyToTab(Tabs.Script)
 
 --// Script \\--
 local Script: ScriptType = {
@@ -223,30 +160,10 @@ local Script: ScriptType = {
     Functions = nil,
 }
 
-local Functions
-if ModulesIsFile then
-    Functions = loadfile(ModulesFolder .. "/Utils.luau")
-else
-    Functions = loadstring(game:HttpGet(repo .. "Utils.luau"))
-end
-if not Functions then
-    error("Something wrong with utils")
-end
-
 Script.Functions = Functions(Script, Library)
 
-for _, TabGroup in ipairs(TabGroupNames) do
-    local group
-    if ModulesIsFile then
-        group = loadfile(ModulesFolder .. "/Groups/" .. TabGroup .. ".luau")
-    else
-        group = loadstring(game:HttpGet(Script.repo .. "Groups/" .. TabGroup .. ".luau"))
-    end
-    if group then
-        group(TabGroups[TabGroup], Script, Library)
-    else
-        error("Something wrong with '" .. TabGroup .. ".luau'")
-    end
+for TabGroup, group in pairs(GroupFunctions) do
+    group(TabGroups[TabGroup], Script, Library)
 end
 
 Library:OnUnload(Script.Functions.OnUnload)

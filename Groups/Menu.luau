@@ -34,7 +34,7 @@ TabGroup:AddButton("Reset Settings", function()
     pcall(function()
         Library:Unload()
     end)
-    local load = loadstring(game:HttpGet(Script.repo .. "main.luau"))
+    local load = loadstring(game:HttpGet(Script.repo .. "inkgame.luau"))
     if load then
         load()
     end
