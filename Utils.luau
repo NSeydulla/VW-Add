@@ -50,7 +50,6 @@ return {
             end
         end))
         Script.SaveManager:LoadAutoloadConfig()
-        getgenv().shared.VoidwareLoading = nil
     end,
 
     OnUnload = function()

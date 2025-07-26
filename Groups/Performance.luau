@@ -66,11 +66,11 @@ TabGroup:AddToggle("LowGFX", {
                 elseif v:IsA("ParticleEmitter") then
                     local particle = v :: ParticleEmitter
                     Script.Temp.LowGFX_Originals[particle] = particle.Lifetime
-                    particle.Lifetime = NumberRange.new(0)
+                    particle.Lifetime = 0
                 elseif v:IsA("Trail") then
                     local trail = v :: Trail
                     Script.Temp.LowGFX_Originals[trail] = trail.Lifetime
-                    trail.Lifetime = NumberRange.new(0)
+                    trail.Lifetime = 0
                 end
             end
             Script.Temp.LowGFX_Originals.PostEffects = {}

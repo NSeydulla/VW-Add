@@ -12,6 +12,7 @@ if not getgenv().shared then
 end
 
 if getgenv().shared.VoidwareLoading then
+    print("already running")
     return
 end
 getgenv().shared.VoidwareLoading = true
@@ -140,8 +141,8 @@ end
 SaveManager = loadSaveManager()
 
 local Window = Library:CreateWindow({
-    Title = "Voidware - Ink Game | Version: " .. WebVersion,
-    Footer = "This is fork of Voidware! Original scripts discord - discord.gg/voidware",
+    Title = "Voidware - Ink Game",
+    Footer = WebVersion .. " | This is fork of Voidware! Original scripts discord - discord.gg/voidware",
     Center = true,
     AutoShow = true,
     Resizable = true,
@@ -250,5 +251,6 @@ end
 
 Library:OnUnload(Script.Functions.OnUnload)
 task.spawn(function()
+    getgenv().shared.VoidwareLoading = nil
     pcall(Script.Functions.OnLoad)
 end)
