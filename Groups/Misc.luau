@@ -41,11 +41,11 @@ TabGroup:AddToggle("AntiRagdoll", {
             end
         end
 
-        -- for _, obj in pairs(HumanoidRootPart:GetChildren()) do
-        --     if obj:IsA("BallSocketConstraint") or obj.Name:match("^CacheAttachment") then
-        --         obj:Destroy()
-        --     end
-        -- end
+        for _, obj in pairs(HumanoidRootPart:GetChildren()) do
+            if obj:IsA("BallSocketConstraint") or obj.Name:match("^CacheAttachment") then
+                obj:Destroy()
+            end
+        end
         -- local Torso = Character:FindFirstChild("Torso")
         -- local joints = { "Left Hip", "Left Shoulder", "Neck", "Right Hip", "Right Shoulder" }
         -- for _, jointName in pairs(joints) do
@@ -54,17 +54,17 @@ TabGroup:AddToggle("AntiRagdoll", {
         --         motor.Part0 = Torso
         --     end
         -- end
-        -- for _, part in pairs(Character:GetChildren()) do
-        --     if part:IsA("BasePart") and part:FindFirstChild("BoneCustom") then
-        --         part.BoneCustom:Destroy()
-        --     end
-        -- end
+        for _, part in pairs(Character:GetChildren()) do
+            if part:IsA("BasePart") and part:FindFirstChild("BoneCustom") then
+                part.BoneCustom:Destroy()
+            end
+        end
         if not Value then
             return
         end
         Script.Connections.RagdollBlockConn = Character.ChildAdded:Connect(function(child)
             if child.Name == "Ragdoll" then
-                task.delay(0.01, function()
+                task.delay(0.1, function()
                     pcall(function()
                         child:Destroy()
                     end)

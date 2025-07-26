@@ -12,8 +12,7 @@ if not getgenv().shared then
 end
 
 if getgenv().shared.VoidwareLoading then
-    print("already running")
-    return
+    error("[Voidware] Already running!")
 end
 getgenv().shared.VoidwareLoading = true
 
@@ -84,7 +83,7 @@ pcall(function()
     end
 end)
 
-local WebVersion = game:HttpGet(repo .. "version.txt")
+local WebVersion = "1.0.1"
 local Success, ModulesIsFile = pcall(function()
     if not readfile or not writefile or not listfiles then
         return
@@ -125,20 +124,6 @@ if not loadLibrary then
 end
 Library = loadLibrary()
 getgenv().shared.Voidware_InkGame_Library = Library
-
-local loadThemeManager =
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/mstudio45/Obsidian/main/addons/ThemeManager.lua"))
-if not loadThemeManager then
-    error("Something wrong with ThemeManager")
-end
-ThemeManager = loadThemeManager()
-
-local loadSaveManager =
-    loadstring(game:HttpGet("https://raw.githubusercontent.com/mstudio45/Obsidian/main/addons/SaveManager.lua"))
-if not loadSaveManager then
-    error("Something wrong with SaveManager")
-end
-SaveManager = loadSaveManager()
 
 local Window = Library:CreateWindow({
     Title = "Voidware - Ink Game",
@@ -188,6 +173,21 @@ local TabGroups = {
 
     Menu = Tabs["UI Settings"]:AddRightGroupbox("Menu", "menu"),
 }
+
+local loadThemeManager =
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/mstudio45/Obsidian/main/addons/ThemeManager.lua"))
+if not loadThemeManager then
+    error("Something wrong with ThemeManager")
+end
+ThemeManager = loadThemeManager()
+
+local loadSaveManager =
+    loadstring(game:HttpGet("https://raw.githubusercontent.com/mstudio45/Obsidian/main/addons/SaveManager.lua"))
+if not loadSaveManager then
+    error("Something wrong with SaveManager")
+end
+SaveManager = loadSaveManager()
+
 ThemeManager:SetLibrary(Library)
 SaveManager:SetLibrary(Library)
 SaveManager:IgnoreThemeSettings()
