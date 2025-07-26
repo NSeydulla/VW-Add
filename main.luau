@@ -231,7 +231,8 @@ end
 if not Functions then
     error("Something wrong with utils")
 end
-Functions(Script, Library)
+
+Script = Functions(Script, Library)
 
 for _, TabGroup in ipairs(TabGroupNames) do
     local group

@@ -383,3 +383,4 @@ Script.Functions.ESP = function(args: ESPArgs): ESP?
     Script.ESPTable[self.Type][tableIndex] = self
     return self
 end
+return Script
